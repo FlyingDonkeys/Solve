@@ -3,7 +3,6 @@ name: Update database types
 on:
   workflow_dispatch:
   schedule:
-    # sets the action to run daily. You can modify this to run the action more or less frequently
     - cron: '0 0 * * *'
 
 jobs:
@@ -19,23 +18,32 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - run: npm run update-types
+
       - name: check for file changes
         id: git_status
         run: |
-          echo "status=$(git status -s)" >> $GITHUB_OUTPUT
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Commit files
-        if: ${{contains(steps.git_status.outputs.status, ' ')}}
+        if: steps.git_status.outputs.has_changes == 'true'
         run: |
           git add types/database.types.ts
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git commit -m "Update database types" -a
+
       - name: Push changes
-        if: ${{contains(steps.git_status.outputs.status, ' ')}}
+        if: steps.git_status.outputs.has_changes == 'true'
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
