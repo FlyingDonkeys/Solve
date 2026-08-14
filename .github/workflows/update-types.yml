@@ -28,7 +28,7 @@ jobs:
       - name: check for file changes
         id: git_status
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
+          if [ -n "$(git status --porcelain types/database.types.ts)" ]; then            
             echo "has_changes=true" >> $GITHUB_OUTPUT
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
