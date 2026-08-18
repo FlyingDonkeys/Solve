@@ -22,8 +22,8 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 // 2. Initialize Clients with Database typing
-const supabase = createClient<Database>(supabaseUrl, supabaseKey);
-const client = new Anthropic({ apiKey: anthropicApiKey });
+const supabaseClient = createClient<Database>(supabaseUrl, supabaseKey);
+const anthropicClient = new Anthropic({ apiKey: anthropicApiKey });
 
 type QuestionInsert = Database['public']['Tables']['Questions']['Insert'];
 
@@ -125,7 +125,7 @@ async function runIngestion() {
 				- Escape any literal currency dollar amounts as \\$ (e.g. \\$8,250 or \\$$(x+2)$) — never leave a bare $ next to a number unless it is genuine LaTeX math. This matters especially for word problems involving money.`
 			});
 
-			const response = await client.messages.stream({
+			const response = await anthropicClient.messages.stream({
 				model: 'claude-sonnet-5',
 				max_tokens: 24000,
 				tools: [EXTRACTION_TOOL],
@@ -137,14 +137,14 @@ async function runIngestion() {
 				throw new Error('Response truncated at max_tokens — increase max_tokens or split the PDF.');
 			}
 			if (response.stop_reason === 'refusal') {
-				throw new Error('Claude refused to process this document.');
+				throw new Error('LLM refused to process this document.');
 			}
 
 			const toolBlock = response.content.find(
 				(b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
 			);
 			if (!toolBlock) {
-				throw new Error('Claude did not return structured tool output.');
+				throw new Error('LLM did not return structured tool output.');
 			}
 
 			const parseResult = IngestionPayloadSchema.safeParse(toolBlock.input);
@@ -162,7 +162,7 @@ async function runIngestion() {
 				continue;
 			}
 
-			const { data, error } = await supabase
+			const { data, error } = await supabaseClient
 				.from('Questions')
 				.insert(validated.questions)
 				.select('id');
