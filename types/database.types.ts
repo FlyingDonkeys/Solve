@@ -38,19 +38,19 @@ export type Database = {
             foreignKeyName: "question_subtopic_junction_question_id_fkey"
             columns: ["question_id"]
             isOneToOne: false
-            referencedRelation: "Questions"
+            referencedRelation: "questions"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "question_subtopic_junction_subtopic_id_fkey"
             columns: ["subtopic_id"]
             isOneToOne: false
-            referencedRelation: "Subtopics"
+            referencedRelation: "subtopics"
             referencedColumns: ["id"]
           },
         ]
       }
-      Questions: {
+      questions: {
         Row: {
           created_at: string
           id: number
@@ -80,7 +80,7 @@ export type Database = {
         }
         Relationships: []
       }
-      Subtopics: {
+      subtopics: {
         Row: {
           created_at: string
           id: number
@@ -104,12 +104,12 @@ export type Database = {
             foreignKeyName: "Subtopics_related_topic_fkey"
             columns: ["related_topic"]
             isOneToOne: false
-            referencedRelation: "Topics"
+            referencedRelation: "topics"
             referencedColumns: ["id"]
           },
         ]
       }
-      Topics: {
+      topics: {
         Row: {
           created_at: string
           id: number
