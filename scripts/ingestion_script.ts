@@ -25,19 +25,25 @@ if (!supabaseUrl || !supabaseKey) {
 const supabaseClient = createClient<Database>(supabaseUrl, supabaseKey);
 const anthropicClient = new Anthropic({ apiKey: anthropicApiKey });
 
-type QuestionInsert = Database['public']['Tables']['Questions']['Insert'];
+type QuestionInsert = Database['public']['Tables']['questions']['Insert'];
+type QuestionSubtopicJunctionInsert = Database['public']['Tables']['question_subtopic_junction']['Insert']
 
 // Zod schema matching the Insert type for runtime validation
-const QuestionItemSchema = z.object({
+const QuestionBaseSchema = z.object({
   question_title: z.string().describe('Usually in the form (School Name) (Year) (Prelims/Promos/Common Test etc) (Paper 1/2) (Question Integer Number). If this format cannot be achieved, give a generic name based on the Question Content.'),
   question_content: z.string().describe('Complete question text formatted in LaTeX.'),
   question_solution: z.string().optional().describe('Step-by-step worked solution formatted in LaTeX.'),
   subject: z.string().default('H2 Math'),
-  year_of_question: z.number().int().optional().describe('Integer Year.'),
+  year_of_question: z.number().int().optional().describe('Integer Year, can be inferred from the question_title.'),
+
 }) satisfies z.ZodType<QuestionInsert>;
 
+const QuestionExtractionSchema = QuestionBaseSchema.extend({
+  subtopic_ids: z.array(z.number()).describe('Array of subtopic IDs where the subtopic is assessed by this Question.')
+})
+
 const IngestionPayloadSchema = z.object({
-  questions: z.array(QuestionItemSchema),
+  questions: z.array(QuestionExtractionSchema),
 });
 
 const QUESTION_BANK_DIR = path.join(process.cwd(), 'scripts', 'question_bank');
@@ -70,6 +76,15 @@ async function runIngestion() {
   const folders = entries.filter((dirent) => dirent.isDirectory());
 
   console.log(`Found ${folders.length} folder(s) to process.\n`);
+
+	// Fetch subtopic data from supabase
+	const { data: subtopicData, error: subtopicFetchError } = await supabaseClient
+		.from('subtopics')
+		.select()
+
+  if (subtopicFetchError) {
+    throw new Error(`Supabase failed to fetch subtopic data.`);
+  }
 
   for (const folder of folders) {
     const folderPath = path.join(QUESTION_BANK_DIR, folder.name);
@@ -107,7 +122,10 @@ async function runIngestion() {
 
 			contentBlocks.push({
 				type: 'text',
-				text: `Extract all questions and their matching solutions from the attached PDF(s): a question paper and its corresponding markers' report / solutions.
+				text: `Extract all questions and their matching solutions from the attached PDF(s): a question paper and its corresponding markers' report / solutions. From the content of the question, use one or multiple subtopic id's that is/are relevant to the question.
+
+        AVAILABLE SUBTOPICS (assign relevant ones to each question):
+        ${JSON.stringify(subtopicData)}
 
 				OUTPUT STRUCTURE:
 				- If a question has multiple parts, i.e: Question 9 with parts a(i), a(ii) and b, it should be only *1 question*, which is Question 9.
@@ -118,7 +136,7 @@ async function runIngestion() {
 				- The markers' report has a "Remarks" or "Comments" column separate from the "Solution" column — extract only the Solution column content as the answer. Discard remarks/comments columns entirely (they are examiner notes, not part of the solution).
 				- If a solution shows multiple methods (e.g. "Alternatively," "Method 1" / "Method 2"), extract all methods, keeping them clearly labeled and separate.
 				- If a solution or question continues onto a new PDF page without a new question number appearing, treat it as a continuation of the same question — do not split it into a separate entry.
-				- If a question or solution includes a diagram, sketch, or figure that carries required content (e.g. a graph sketch that is part of the marked answer), note its presence with a short bracketed placeholder (e.g. "[diagram: sign diagram for inequality]") rather than omitting it silently or attempting to describe it in detail.
+				- If a question or solution includes a diagram, sketch, or figure that carries required content, omit both the question and the solution. If the diagram, sketch, figure or any similar entities is not essential for the understanding of the question/solution, you should extract the text but omit any mention of the pictorial.
 
 				FORMATTING RULES:
 				- Format all math in LaTeX: $...$ for inline, $$...$$ for display equations.
@@ -153,25 +171,43 @@ async function runIngestion() {
 				throw new Error(`Schema validation failed: ${parseResult.error.message}`);
 			}
 
-			console.log('Output tokens used:', response.usage.output_tokens);
-
 			const validated = parseResult.data;
 
-			if (validated.questions.length === 0) {
-				console.warn(`⚠️ No questions extracted for: ${folder.name}`);
+      const questionRecords = validated.questions.map(({ subtopic_ids, ...q}) => q);
+
+      if (questionRecords.length > 0) {
+        const { data: insertedQuestions, error } = await supabaseClient
+          .from('questions')
+          .insert(questionRecords)
+          .select('id');
+
+        if (error) {
+          throw new Error(`Supabase insert failed (${validated.questions.length} rows): ${error.message}`);
+        }
+
+        const junctionRecords = insertedQuestions.flatMap((q, idx) => validated.questions[idx].subtopic_ids.map(subtopic_id =>
+          ({
+            question_id: q.id,
+            subtopic_id
+          })
+          ))
+
+        if (junctionRecords.length > 0) {
+          const { error: junctionError } = await supabaseClient
+            .from('question_subtopic_junction')
+            .insert(junctionRecords);
+
+          if (junctionError) throw new Error(`Failed to insert junctions: ${junctionError.message}`);
+
+          console.log(`✅ Ingested ${insertedQuestions.length} questions for: ${folder.name}`);
+        } else {
+          console.warn(`⚠️ No junction table entries created for: ${folder.name}`);
+				  continue;
+        }
+      } else {
+        console.warn(`⚠️ No questions extracted for: ${folder.name}`);
 				continue;
-			}
-
-			const { data, error } = await supabaseClient
-				.from('Questions')
-				.insert(validated.questions)
-				.select('id');
-
-			if (error) {
-				throw new Error(`Supabase insert failed (${validated.questions.length} rows): ${error.message}`);
-			}
-
-			console.log(`✅ Ingested ${data.length} questions for: ${folder.name}`);
+      }
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : String(err);
 			console.error(`❌ Error processing ${folder.name}:`, message);
