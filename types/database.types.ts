@@ -85,19 +85,19 @@ export type Database = {
           created_at: string
           id: number
           related_topic: number
-          subtopic_name: string | null
+          subtopic_name: string
         }
         Insert: {
           created_at?: string
           id?: number
           related_topic: number
-          subtopic_name?: string | null
+          subtopic_name: string
         }
         Update: {
           created_at?: string
           id?: number
           related_topic?: number
-          subtopic_name?: string | null
+          subtopic_name?: string
         }
         Relationships: [
           {
@@ -113,17 +113,17 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          topic_name: string | null
+          topic_name: string
         }
         Insert: {
           created_at?: string
           id?: number
-          topic_name?: string | null
+          topic_name: string
         }
         Update: {
           created_at?: string
           id?: number
-          topic_name?: string | null
+          topic_name?: string
         }
         Relationships: []
       }
