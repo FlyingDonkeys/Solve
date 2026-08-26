@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
@@ -8,25 +7,17 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { readFile } from "node:fs/promises";
 
 import { Database } from '@/types/database.types'
+import { adminClient } from '@/lib/supabase/client';
 
 // 1. Load environment variables from .env.local
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
-const supabaseUrl = process.env.SUPABASE_URL_LOCAL;
-const supabaseKey = process.env.SUPABASE_SECRET_KEY_LOCAL;
 const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase environment variables in .env.local');
-  process.exit(1);
-}
-
-// 2. Initialize Clients with Database typing
-const supabaseClient = createClient<Database>(supabaseUrl, supabaseKey);
+// 2. Initialize Anthropic client
 const anthropicClient = new Anthropic({ apiKey: anthropicApiKey });
 
 type QuestionInsert = Database['public']['Tables']['questions']['Insert'];
-type QuestionSubtopicJunctionInsert = Database['public']['Tables']['question_subtopic_junction']['Insert']
 
 // Zod schema matching the Insert type for runtime validation
 const QuestionBaseSchema = z.object({
@@ -35,7 +26,6 @@ const QuestionBaseSchema = z.object({
   question_solution: z.string().optional().describe('Step-by-step worked solution formatted in LaTeX.'),
   subject: z.string().default('H2 Math'),
   year_of_question: z.number().int().optional().describe('Integer Year, can be inferred from the question_title.'),
-
 }) satisfies z.ZodType<QuestionInsert>;
 
 const QuestionExtractionSchema = QuestionBaseSchema.extend({
@@ -78,7 +68,7 @@ async function runIngestion() {
   console.log(`Found ${folders.length} folder(s) to process.\n`);
 
 	// Fetch subtopic data from supabase
-	const { data: subtopicData, error: subtopicFetchError } = await supabaseClient
+	const { data: subtopicData, error: subtopicFetchError } = await adminClient
 		.from('subtopics')
 		.select()
 
@@ -137,10 +127,14 @@ async function runIngestion() {
 				- If a solution shows multiple methods (e.g. "Alternatively," "Method 1" / "Method 2"), extract all methods, keeping them clearly labeled and separate.
 				- If a solution or question continues onto a new PDF page without a new question number appearing, treat it as a continuation of the same question — do not split it into a separate entry.
 				- If a question or solution includes a diagram, sketch, or figure that carries required content, omit both the question and the solution. If the diagram, sketch, figure or any similar entities is not essential for the understanding of the question/solution, you should extract the text but omit any mention of the pictorial.
+				- If a question or solution includes a diagram, sketch, or figure that carries required content (e.g. a graph sketch that is part of the marked answer), do not mention its existence as it cannot be shown graphically. Instead, convey the content in a textual way, (e.g: Instead of saying "the following diagram shows {content}", you can say "the graph of {content}").
+        - The year of the question can usually be inferred from the question title.
+        - The solution should be question agnostic, i.e: it should not reference the question title or any other metadata. It should be in the form (a), (b), or (bi, (cii) etc, and not 1(a), 1(b), 1(b)(i) etc. The solution should be in the same order as the question parts, i.e: (a) first, then (b), then (c) etc.
 
 				FORMATTING RULES:
-				- Format all math in LaTeX: $...$ for inline, $$...$$ for display equations.
-				- Escape any literal currency dollar amounts as \\$ (e.g. \\$8,250 or \\$$(x+2)$) — never leave a bare $ next to a number unless it is genuine LaTeX math. This matters especially for word problems involving money.`
+				- Format all math in LaTeX, use $$...$$ for display equations.
+        - Do not use TeX macro escapes for plain text (e.g., write SGD such as SGD 8,250 instead of \$8,250).
+        - Always add a newline after each answer part, i.e: after (a), (b), (c) etc. and after each subpart, i.e: (ai), (bii), (ciii) etc.`
 			});
 
 			const response = await anthropicClient.messages.stream({
@@ -172,48 +166,63 @@ async function runIngestion() {
 			}
 
 			const validated = parseResult.data;
-
       const questionRecords = validated.questions.map(({ subtopic_ids, ...q}) => q);
 
-      if (questionRecords.length > 0) {
-        const { data: insertedQuestions, error } = await supabaseClient
-          .from('questions')
-          .insert(questionRecords)
-          .select('id');
+      if (questionRecords.length === 0) {
+        console.warn(`⚠️ No questions extracted for: ${folder.name}`);
+        continue;
+      }
 
-        if (error) {
-          throw new Error(`Supabase insert failed (${validated.questions.length} rows): ${error.message}`);
+      let ingestedCount = 0;
+
+      for (let i = 0; i < questionRecords.length; i++) {
+        const record = questionRecords[i];
+        const validatedQuestion = validated.questions[i];
+
+        // 1. Insert question individually and retrieve the generated ID
+        const { data: insertedQuestion, error: questionError } = await adminClient
+          .from('questions')
+          .insert(record)
+          .select('id')
+          .single();
+
+        if (questionError || !insertedQuestion) {
+          throw new Error(
+            `Supabase insert failed for question "${record.question_title}" in ${folder.name}: ${questionError?.message}`
+          );
         }
 
-        const junctionRecords = insertedQuestions.flatMap((q, idx) => validated.questions[idx].subtopic_ids.map(subtopic_id =>
-          ({
-            question_id: q.id,
-            subtopic_id
-          })
-          ))
+        // 2. Prepare junction entries for this specific question
+        const subtopicIds = validatedQuestion.subtopic_ids ?? [];
+        if (subtopicIds.length > 0) {
+          const junctionRecords = subtopicIds.map((subtopic_id) => ({
+            question_id: insertedQuestion.id,
+            subtopic_id,
+          }));
 
-        if (junctionRecords.length > 0) {
-          const { error: junctionError } = await supabaseClient
+          const { error: junctionError } = await adminClient
             .from('question_subtopic_junction')
             .insert(junctionRecords);
 
-          if (junctionError) throw new Error(`Failed to insert junctions: ${junctionError.message}`);
-
-          console.log(`✅ Ingested ${insertedQuestions.length} questions for: ${folder.name}`);
+          if (junctionError) {
+            throw new Error(
+              `Failed to insert junctions for question ID ${insertedQuestion.id}: ${junctionError.message}`
+            );
+          }
         } else {
-          console.warn(`⚠️ No junction table entries created for: ${folder.name}`);
-				  continue;
+          console.warn(
+            `⚠️ No subtopics assigned for question ID ${insertedQuestion.id} (${record.question_title}) in: ${folder.name}`
+          );
         }
-      } else {
-        console.warn(`⚠️ No questions extracted for: ${folder.name}`);
-				continue;
-      }
-		} catch (err: unknown) {
-			const message = err instanceof Error ? err.message : String(err);
-			console.error(`❌ Error processing ${folder.name}:`, message);
-		}
-	}
 
+        ingestedCount++;
+      }
+
+      console.log(`✅ Ingested ${ingestedCount} questions for: ${folder.name}`);
+		} catch (error) {
+      console.error(`❌ Error processing folder "${folder.name}":`, error);
+    }
+	} 
   console.log('\nIngestion pipeline complete.');
 }
 
