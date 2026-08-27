@@ -120,19 +120,19 @@ async function runIngestion() {
 				OUTPUT STRUCTURE:
 				- If a question has multiple parts, i.e: Question 9 with parts a(i), a(ii) and b, it should be only *1 question*, which is Question 9.
 				- Question and its parts should be fully shown in the question_content.
+        - Every question MUST include the "subtopic_ids" array using integer IDs from the list above (e.g., [4, 7]). If none match, return [].
 
 				CONTENT RULES:
 				- Transcribe questions and solutions word-for-word from the source. Do not paraphrase, summarize, or reword any mathematical or English content.
 				- The markers' report has a "Remarks" or "Comments" column separate from the "Solution" column — extract only the Solution column content as the answer. Discard remarks/comments columns entirely (they are examiner notes, not part of the solution).
 				- If a solution shows multiple methods (e.g. "Alternatively," "Method 1" / "Method 2"), extract all methods, keeping them clearly labeled and separate.
 				- If a solution or question continues onto a new PDF page without a new question number appearing, treat it as a continuation of the same question — do not split it into a separate entry.
-				- If a question or solution includes a diagram, sketch, or figure that carries required content, omit both the question and the solution. If the diagram, sketch, figure or any similar entities is not essential for the understanding of the question/solution, you should extract the text but omit any mention of the pictorial.
 				- If a question or solution includes a diagram, sketch, or figure that carries required content (e.g. a graph sketch that is part of the marked answer), do not mention its existence as it cannot be shown graphically. Instead, convey the content in a textual way, (e.g: Instead of saying "the following diagram shows {content}", you can say "the graph of {content}").
         - The year of the question can usually be inferred from the question title.
-        - The solution should be question agnostic, i.e: it should not reference the question title or any other metadata. It should be in the form (a), (b), or (bi, (cii) etc, and not 1(a), 1(b), 1(b)(i) etc. The solution should be in the same order as the question parts, i.e: (a) first, then (b), then (c) etc.
+        - The solution should be question agnostic, i.e: it should not reference the question title or any other metadata. It should be in the form (a), (b), or (bi), (cii) etc, and not 1(a), 1(b), 1(b)(i) etc. The solution should be in the same order as the question parts, i.e: (a) first, then (b), then (c) etc.
 
 				FORMATTING RULES:
-				- Format all math in LaTeX, use $$...$$ for display equations.
+				- Format all math in LaTeX, use $$...$$ for display equations, use single $ ... $ for inline variables and equations (e.g., $x$, $y = 2x+1$).
         - Do not use TeX macro escapes for plain text (e.g., write SGD such as SGD 8,250 instead of \$8,250).
         - Always add a newline after each answer part, i.e: after (a), (b), (c) etc. and after each subpart, i.e: (ai), (bii), (ciii) etc.`
 			});

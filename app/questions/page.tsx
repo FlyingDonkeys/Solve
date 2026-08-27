@@ -69,7 +69,7 @@ export default async function QuestionsPage() {
       </header>
 
       {/* Questions Feed */}
-      <section className="space-y-6">
+      <section className="flex flex-col gap-8 mb-8">
         {questions.map((question) => {
           const formattedDate = new Date(question.created_at).toLocaleDateString('en-US', {
             year: 'numeric',

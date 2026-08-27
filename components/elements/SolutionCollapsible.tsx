@@ -6,8 +6,8 @@ import {
 
 import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
-import { Button } from "@/components/ui/button"
-import { ChevronDownIcon } from "lucide-react"
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface SolutionCollapsibleProps {
   triggerText: string;
@@ -18,12 +18,10 @@ export function SolutionCollapsible({ triggerText, contentText }: SolutionCollap
   return (
     <Collapsible className="rounded-md bg-neutral-800">
       <CollapsibleTrigger
-        render={
-          <Button variant="ghost" className="w-full text-xs font-semibold uppercase text-neutral-400">
-            { triggerText }
-            <ChevronDownIcon className="ml-auto group-data-panel-open/button:rotate-180" />
-          </Button>}
-      />
+        className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "p-4 justify-between text-sm font-semibold uppercase text-neutral-400 hover:bg-neutral-700 hover:text-white")}
+      >
+        {triggerText}
+      </CollapsibleTrigger>
 
       <CollapsibleContent
         className="p-4 whitespace-pre-line text-lg"
