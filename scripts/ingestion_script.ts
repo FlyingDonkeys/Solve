@@ -1,6 +1,6 @@
 import fs from 'fs';
-import path from 'path';
 import dotenv from 'dotenv';
+import path from 'path';
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -9,12 +9,11 @@ import { readFile } from "node:fs/promises";
 import { Database } from '@/types/database.types'
 import { adminClient } from '@/lib/supabase/client';
 
-// 1. Load environment variables from .env.local
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
-
-const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+// 1. Load the single .env file
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 // 2. Initialize Anthropic client
+const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
 const anthropicClient = new Anthropic({ apiKey: anthropicApiKey });
 
 type QuestionInsert = Database['public']['Tables']['questions']['Insert'];

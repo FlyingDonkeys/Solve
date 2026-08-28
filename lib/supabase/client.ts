@@ -1,17 +1,25 @@
+// lib/supabase/client.ts
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/database.types'
-import dotenv from 'dotenv';
-import path from 'path';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+// Safe check: Next.js build/runtime sets NODE_ENV = 'production'
+const isProd =
+  process.env.NODE_ENV === 'production' ||
+  (typeof process !== 'undefined' && Array.isArray(process.argv) && process.argv.includes('--prod'))
 
-// Admin client for backend scripts and operations requiring service role
-// Uses the secret key with elevated permissions
-const supabaseUrl = process.env.SUPABASE_URL_LOCAL
-const supabaseKey = process.env.SUPABASE_SECRET_KEY_LOCAL
+const supabaseUrl = isProd
+  ? process.env.SUPABASE_URL_PROD
+  : process.env.SUPABASE_URL_LOCAL
+
+const supabaseKey = isProd
+  ? process.env.SUPABASE_SECRET_KEY_PROD
+  : process.env.SUPABASE_SECRET_KEY_LOCAL
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing SUPABASE_URL_LOCAL or SUPABASE_SECRET_KEY_LOCAL environment variables')
+  const envType = isProd ? 'PRODUCTION' : 'LOCAL'
+  throw new Error(
+    `Missing Supabase credentials for ${envType} (Check SUPABASE_URL_${envType} and SUPABASE_SECRET_KEY_${envType} in your environment)`
+  )
 }
 
 export const adminClient = createClient<Database>(supabaseUrl, supabaseKey)
