@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "update-types": "npx supabase gen types --lang=typescript --project-id \"$PROJECT_REF\" > types/database.types.ts",
-    "ingest": "npx tsx ./scripts/ingestion_script.ts"
+    "ingest": "npx tsx ./scripts/ingestion_script.ts",
+    "ingest:prod": "npx tsx ./scripts/ingestion_script.ts --prod"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.116.0",
