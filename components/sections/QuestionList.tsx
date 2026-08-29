@@ -50,7 +50,7 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
       {/* Page Header */}
       <header className="grid grid-cols-3 items-center mb-8">
         <div />
-        <h1 className="text-4xl font-bold text-center">Question Bank</h1>
+        <h1 className="text-3xl font-bold text-center">Question Bank</h1>
         <p className="text-xl font-semibold text-neutral-400 text-right">
           Showing {displayedQuestions.length} total questions
         </p>
