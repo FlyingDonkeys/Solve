@@ -35,13 +35,13 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
       const questionSubtopics = question.question_subtopic_junction.map(
         (j) => j.Subtopics?.subtopic_name
       );
-      return activeSubtopics.some((active) => questionSubtopics.includes(active));
+      return activeSubtopics.every((active) => questionSubtopics.includes(active));
     });
   }, [initialQuestions, activeSubtopics]);
 
   const toggleFilter = (subtopic: string) => {
     setActiveSubtopics((prev) =>
-      prev.includes(subtopic) ? prev.filter((s) => s !== subtopic) : [...prev, subtopic]
+      prev.includes(subtopic) ? prev.filter((s) => s !== subtopic) : prev.concat([subtopic])
     );
   };
 
@@ -52,14 +52,14 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
         <div />
         <h1 className="text-3xl font-bold text-center">Question Bank</h1>
         <p className="text-xl font-semibold text-neutral-400 text-right">
-          Showing {displayedQuestions.length} total questions
+          { displayedQuestions.length != 0 ? `Showing ${displayedQuestions.length} questions` : "No questions found"}
         </p>
       </header>
 
       {/* Topic and Subtopic Filters Section */}
       <section className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8 my-8 py-6 border-t border-b border-neutral-400">
         <div className="md:w-48 shrink-0 flex flex-col gap-1">
-          <h2 className="text-2xl font-semibold uppercase tracking-wider text-neutral-400">
+          <h2 className="text-xl font-semibold uppercase tracking-wider text-neutral-400">
             Filter by Subtopic
           </h2>
           {activeSubtopics.length > 0 && (
@@ -103,18 +103,18 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
               <div className="flex flex-wrap flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between">
                   <div className="flex flex-wrap items-center gap-x-4">
-                    <span className="inline-flex items-center rounded-md bg-neutral-800 px-2.5 py-1 text-sm font-medium text-neutral-200 border border-neutral-700">
+                    <p className="inline-flex items-center rounded-md bg-neutral-800 px-2.5 py-1 text-xs font-medium text-neutral-200 border border-neutral-700">
                       {question.subject}
-                    </span>
+                    </p>
                     {question.year_of_question && (
-                      <span className="inline-flex items-center rounded-md bg-neutral-700 px-2.5 py-1 text-sm font-medium text-neutral-400 border border-neutral-600">
+                      <p className="inline-flex items-center rounded-md bg-neutral-700 px-2.5 py-1 text-xs font-medium text-neutral-400 border border-neutral-600">
                         {question.year_of_question}
-                      </span>
+                      </p>
                     )}
                   </div>
-                  <span className="text-sm text-neutral-500 font-mono">
+                  <p className="text-xs text-neutral-400 font-mono">
                     Added {formattedDate}
-                  </span>
+                  </p>
                 </div>
 
                 <div className="flex flex-wrap items-center mb-4 gap-4">
@@ -124,7 +124,7 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
                     return (
                       <span
                         key={junction.subtopic_id}
-                        className={`rounded-md px-2.5 py-1 text-sm font-medium border ${generateColour(subtopic)}`}
+                        className={`rounded-md px-2.5 py-1 text-xs font-medium border ${generateColour(subtopic)}`}
                       >
                         {subtopicName}
                       </span>
@@ -134,12 +134,12 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
               </div>
 
               {/* Question Title */}
-              <h2 className="text-3xl font-semibold text-neutral-100 mb-6 leading-snug">
+              <h2 className="text-xl font-semibold text-neutral-100 mb-6 leading-snug">
                 {question.question_title}
               </h2>
 
               {/* Question Content */}
-              <div className="whitespace-pre-line text-neutral-200 text-lg leading-relaxed mb-6">
+              <div className="whitespace-pre-line text-neutral-200 text-base leading-relaxed mb-6">
                 <Latex>{question.question_content}</Latex>
               </div>
 
