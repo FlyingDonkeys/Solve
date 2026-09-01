@@ -40,6 +40,7 @@ function extractUniqueSubtopics(questions: QuestionWithSubtopicRelations[]): str
   const subtopicNames = questions.flatMap((question) =>
     question.question_subtopic_junction.map((junction) => junction.Subtopics?.subtopic_name ?? "")
   );
+  subtopicNames.sort((a, b) => a.localeCompare(b))
   return [...new Set(subtopicNames)].filter(Boolean);
 }
 
