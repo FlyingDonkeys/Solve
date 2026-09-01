@@ -13,7 +13,11 @@ interface QuestionListProps {
 }
 
 function generateColour(subtopic: SubtopicRow | null): string {
-  const relatedTopic = subtopic?.related_topic ?? 0;
+  const relatedTopic = subtopic?.related_topic_name ?? "";
+
+  // Helper function that maps a string to a unique id
+  const getUniqueId = (str: string) => ([...str].reduce((hash, char) =>
+    (hash * 31 + char.charCodeAt(0)) | 0, 0) >>> 0);
   const possibleColourClasses = [
     "bg-blue-900 text-blue-300 border-blue-600",
     "bg-green-900 text-green-300 border-green-600",
@@ -22,7 +26,7 @@ function generateColour(subtopic: SubtopicRow | null): string {
     "bg-purple-900 text-purple-300 border-purple-600",
     "bg-pink-900 text-pink-300 border-pink-600",
   ];
-  return possibleColourClasses[relatedTopic % possibleColourClasses.length];
+  return possibleColourClasses[getUniqueId(relatedTopic) % possibleColourClasses.length];
 }
 
 export function QuestionList({ initialQuestions, subtopics }: QuestionListProps) {
