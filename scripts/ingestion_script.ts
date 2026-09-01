@@ -69,7 +69,7 @@ async function runIngestion() {
 	// Fetch subtopic data from supabase
 	const { data: subtopicData, error: subtopicFetchError } = await adminClient
 		.from('subtopics')
-		.select("*, ")
+		.select();
 
   if (subtopicFetchError) {
     throw new Error(`Supabase failed to fetch subtopic data.`);
