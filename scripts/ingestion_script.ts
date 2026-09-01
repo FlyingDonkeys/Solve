@@ -69,7 +69,7 @@ async function runIngestion() {
 	// Fetch subtopic data from supabase
 	const { data: subtopicData, error: subtopicFetchError } = await adminClient
 		.from('subtopics')
-		.select()
+		.select();
 
   if (subtopicFetchError) {
     throw new Error(`Supabase failed to fetch subtopic data.`);
@@ -111,9 +111,12 @@ async function runIngestion() {
 
 			contentBlocks.push({
 				type: 'text',
-				text: `Extract all questions and their matching solutions from the attached PDF(s): a question paper and its corresponding markers' report / solutions. From the content of the question, use one or multiple subtopic id's that is/are relevant to the question.
+				text: `Extract all questions and their matching solutions from the attached PDF(s): a question paper and its corresponding markers' report / solutions. 
+               Using the content of the question and its corresponding solution, select one or multiple subtopic id's that are definitely relevant to the question.
+               Only assign strictly relevant subtopics to each question, you must be precise and never misclassify.
+               (For example, a real life context question must involve the real world, and should not be a purely algebraic exercise.)
 
-        AVAILABLE SUBTOPICS (assign relevant ones to each question):
+        AVAILABLE SUBTOPICS:
         ${JSON.stringify(subtopicData)}
 
 				OUTPUT STRUCTURE:

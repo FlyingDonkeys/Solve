@@ -13,7 +13,11 @@ interface QuestionListProps {
 }
 
 function generateColour(subtopic: SubtopicRow | null): string {
-  const relatedTopic = subtopic?.related_topic ?? 0;
+  const relatedTopic = subtopic?.related_topic_name ?? "";
+
+  // Helper function that maps a string to a unique id
+  const getUniqueId = (str: string) => ([...str].reduce((hash, char) =>
+    (hash * 31 + char.charCodeAt(0)) | 0, 0) >>> 0);
   const possibleColourClasses = [
     "bg-blue-900 text-blue-300 border-blue-600",
     "bg-green-900 text-green-300 border-green-600",
@@ -22,7 +26,7 @@ function generateColour(subtopic: SubtopicRow | null): string {
     "bg-purple-900 text-purple-300 border-purple-600",
     "bg-pink-900 text-pink-300 border-pink-600",
   ];
-  return possibleColourClasses[relatedTopic % possibleColourClasses.length];
+  return possibleColourClasses[getUniqueId(relatedTopic) % possibleColourClasses.length];
 }
 
 export function QuestionList({ initialQuestions, subtopics }: QuestionListProps) {
@@ -48,18 +52,21 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
   return (
     <div className="w-3/4 mx-auto mt-8 px-4">      
       {/* Page Header */}
-      <header className="grid grid-cols-3 items-center mb-8">
+      <header className="grid gap-2 text-center items-center mb-4 md:grid-cols-3">
         <div />
-        <h1 className="text-3xl font-bold text-center">Question Bank</h1>
-        <p className="text-xl font-semibold text-neutral-400 text-right">
+        <h1 className="text-3xl font-bold">Question Bank</h1>
+        <p className="text-xl font-semibold text-neutral-400">
           { displayedQuestions.length != 0 ? `Showing ${displayedQuestions.length} questions` : "No questions found"}
+        </p>
+        <p className="text-sm font-normal text-neutral-600 md:hidden">
+          Please use a laptop or tablet for a better viewing experience.
         </p>
       </header>
 
       {/* Topic and Subtopic Filters Section */}
-      <section className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8 my-8 py-6 border-t border-b border-neutral-400">
+      <section className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8 my-6 py-6 border-t border-b border-neutral-400">
         <div className="md:w-48 shrink-0 flex flex-col gap-1">
-          <h2 className="text-xl font-semibold uppercase tracking-wider text-neutral-400">
+          <h2 className="text-xl font-semibold tracking-wider text-neutral-400">
             Filter by Subtopic
           </h2>
           {activeSubtopics.length > 0 && (
