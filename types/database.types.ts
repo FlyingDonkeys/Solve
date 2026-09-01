@@ -84,28 +84,28 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          related_topic: number
+          related_topic_name: string | null
           subtopic_name: string
         }
         Insert: {
           created_at?: string
           id?: number
-          related_topic: number
+          related_topic_name?: string | null
           subtopic_name: string
         }
         Update: {
           created_at?: string
           id?: number
-          related_topic?: number
+          related_topic_name?: string | null
           subtopic_name?: string
         }
         Relationships: [
           {
-            foreignKeyName: "Subtopics_related_topic_fkey"
-            columns: ["related_topic"]
+            foreignKeyName: "subtopics_related_topic_name_fkey"
+            columns: ["related_topic_name"]
             isOneToOne: false
             referencedRelation: "topics"
-            referencedColumns: ["id"]
+            referencedColumns: ["topic_name"]
           },
         ]
       }
