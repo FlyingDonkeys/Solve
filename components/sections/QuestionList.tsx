@@ -1,11 +1,11 @@
-// components/elements/InteractiveFeed.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import {useState, useMemo, useRef, useEffect} from "react";
 import { TopicToggle } from "@/components/elements/TopicToggle";
 import { SolutionCollapsible } from "@/components/elements/SolutionCollapsible";
 import Latex from 'react-latex-next';
 import { QuestionWithSubtopicRelations, SubtopicRow } from "@/app/questions/page";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 
 interface QuestionListProps {
   initialQuestions: QuestionWithSubtopicRelations[];
@@ -32,6 +32,22 @@ function generateColour(subtopic: SubtopicRow | null): string {
 export function QuestionList({ initialQuestions, subtopics }: QuestionListProps) {
   const [activeSubtopics, setActiveSubtopics] = useState<string[]>([]);
 
+  const listRef = useRef<HTMLDivElement>(null);
+  const [scrollMargin, setScrollMargin] = useState(0);
+
+  useEffect(() => {
+    const calculateOffset = () => {
+      if (listRef.current) {
+        const rect = listRef.current.getBoundingClientRect();
+        setScrollMargin(rect.top + window.scrollY);
+      }
+    };
+
+    calculateOffset();
+    window.addEventListener("resize", calculateOffset);
+    return () => window.removeEventListener("resize", calculateOffset);
+  }, []);
+
   // Instant in-memory filter
   const displayedQuestions = useMemo(() => {
     if (activeSubtopics.length === 0) return initialQuestions;
@@ -48,6 +64,14 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
       prev.includes(subtopic) ? prev.filter((s) => s !== subtopic) : prev.concat([subtopic])
     );
   };
+
+  const virtualizer = useWindowVirtualizer({
+    count: displayedQuestions.length,
+    estimateSize: () => 500,
+    scrollMargin
+  });
+
+  const virtualItems = virtualizer.getVirtualItems();
 
   return (
     <div className="w-3/4 mx-auto mt-8 px-4">      
@@ -93,74 +117,92 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
       </section>
 
       {/* Questions Feed */}
-      <section className="flex flex-col gap-8 mb-8">
-        {displayedQuestions.map((question) => {
-          const formattedDate = new Date(question.created_at).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          });
+      <div
+        ref={listRef}
+        className="flex flex-col mb-8"
+      >
+        <div
+          className="relative"
+          style={{ height: `${virtualizer.getTotalSize()}px` }}
+        >
+          <div
+            className="absolute top-0 left-0 w-full"
+            style={{
+              transform: `translateY(${(virtualItems[0]?.start ?? 0) - scrollMargin}px)`
+            }}
+          >
+            {virtualItems.map((virtualItem) => {
+              const question = displayedQuestions[virtualItem.index];
 
-          return (
-            <article
-              key={question.id}
-              className="rounded-xl border-2 border-neutral-800 bg-neutral-900/50 p-6 shadow-sm transition-colors hover:border-gray-400"
-            >
-              {/* Meta Header */}
-              <div className="flex flex-wrap flex-col gap-4">
-                <div className="flex flex-wrap items-center justify-between">
-                  <div className="flex flex-wrap items-center gap-x-4">
-                    <p className="inline-flex items-center rounded-md bg-neutral-800 px-2.5 py-1 text-xs font-medium text-neutral-200 border border-neutral-700">
-                      {question.subject}
-                    </p>
-                    {question.year_of_question && (
-                      <p className="inline-flex items-center rounded-md bg-neutral-700 px-2.5 py-1 text-xs font-medium text-neutral-400 border border-neutral-600">
-                        {question.year_of_question}
+              const formattedDate = new Date(question.created_at).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              });
+
+              return (
+                <article
+                  key={virtualItem.key}
+                  data-index={virtualItem.index}
+                  ref={virtualizer.measureElement}
+                  className="rounded-xl border-2 border-neutral-800 bg-neutral-900/50 p-6 my-6 shadow-sm transition-colors hover:border-gray-400"
+                >
+                  {/* Meta Header */}
+                  <div className="flex flex-wrap flex-col gap-4">
+                    <div className="flex flex-wrap items-center justify-between">
+                      <div className="flex flex-wrap items-center gap-x-4">
+                        <p className="inline-flex items-center rounded-md bg-neutral-800 px-2.5 py-1 text-xs font-medium text-neutral-200 border border-neutral-700">
+                          {question.subject}
+                        </p>
+                        {question.year_of_question && (
+                          <p className="inline-flex items-center rounded-md bg-neutral-700 px-2.5 py-1 text-xs font-medium text-neutral-400 border border-neutral-600">
+                            {question.year_of_question}
+                          </p>
+                        )}
+                      </div>
+                      <p className="text-xs text-neutral-400 font-mono">
+                        Added {formattedDate}
                       </p>
-                    )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center mb-4 gap-4">
+                      {question.question_subtopic_junction?.map((junction) => {
+                        const subtopic = junction?.Subtopics;
+                        const subtopicName = subtopic?.subtopic_name ?? "";
+                        return (
+                          <span
+                            key={junction.subtopic_id}
+                            className={`rounded-md px-2.5 py-1 text-xs font-medium border ${generateColour(subtopic)}`}
+                          >
+                            {subtopicName}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <p className="text-xs text-neutral-400 font-mono">
-                    Added {formattedDate}
-                  </p>
-                </div>
 
-                <div className="flex flex-wrap items-center mb-4 gap-4">
-                  {question.question_subtopic_junction?.map((junction) => {
-                    const subtopic = junction?.Subtopics;
-                    const subtopicName = subtopic?.subtopic_name ?? "";
-                    return (
-                      <span
-                        key={junction.subtopic_id}
-                        className={`rounded-md px-2.5 py-1 text-xs font-medium border ${generateColour(subtopic)}`}
-                      >
-                        {subtopicName}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
+                  {/* Question Title */}
+                  <h2 className="text-xl font-semibold text-neutral-100 mb-6 leading-snug">
+                    {question.question_title}
+                  </h2>
 
-              {/* Question Title */}
-              <h2 className="text-xl font-semibold text-neutral-100 mb-6 leading-snug">
-                {question.question_title}
-              </h2>
+                  {/* Question Content */}
+                  <div className="whitespace-pre-line text-neutral-200 text-base leading-relaxed mb-6">
+                    <Latex>{question.question_content}</Latex>
+                  </div>
 
-              {/* Question Content */}
-              <div className="whitespace-pre-line text-neutral-200 text-base leading-relaxed mb-6">
-                <Latex>{question.question_content}</Latex>
-              </div>
-
-              {/* Collapsible Solution */}
-              {question.question_solution && (
-                <SolutionCollapsible
-                  triggerText="▶ view solution"
-                  contentText={question.question_solution}
-                />
-              )}
-            </article>
-          );
-        })}
-      </section>
+                  {/* Collapsible Solution */}
+                  {question.question_solution && (
+                    <SolutionCollapsible
+                      contentText={question.question_solution}
+                    />
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
