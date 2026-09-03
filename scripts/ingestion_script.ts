@@ -125,11 +125,19 @@ async function runIngestion() {
         - Every question MUST include the "subtopic_ids" array using integer IDs from the list above (e.g., [4, 7]). If none match, return [].
 
 				CONTENT RULES:
-				- Transcribe questions and solutions word-for-word from the source. Do not paraphrase, summarize, or reword any mathematical or English content.
-				- The markers' report has a "Remarks" or "Comments" column separate from the "Solution" column — extract only the Solution column content as the answer. Discard remarks/comments columns entirely (they are examiner notes, not part of the solution).
+				- Transcribe questions and solutions WORD-FOR-WORD from the source. Do not paraphrase, summarize, or reword any mathematical or English content.
+				- Diagrams, Figures & Graph Handling:
+          * OVERRIDE RULE: You are permitted to reword ONLY to eliminate visual diagram dependencies. Transcribe all other text word-for-word.
+          * Instructional phrasing is included: rewording extends to instructions like "with the aid of a diagram," "sketch on the same axes," or "using the diagram above" — rewrite these as direct instructions to produce the required argument/values in text (e.g. "with the aid of a diagram, show that..." → "by comparing the relevant areas, show that...").   
+          * Never mention or imply the existence of a visual artifact. Ban phrases such as "the diagram shows", "as seen below", "refer to the figure", or "in the sketch".
+          * Geometric & Physical Scenarios: Convert visual descriptions into declarative mathematical statements (e.g., convert "The diagram shows a rectangle of width 3a and height b with a semicircle..." to "Consider a rectangle of width 3a and height b with a semicircle centered on top of the rectangle.").
+          * Graph Descriptions (Questions & Solutions): 
+            - If a question premise or marked solution describes or requires a graph sketch, represent it textually by stating its critical features in standard mathematical prose: stationary/turning points, axial intercepts, equations of asymptotes, and endpoints (specifying whether they are inclusive or exclusive).
+            - In solutions, present graph features cleanly (e.g., "[Sketch details: Curve y = f(x) with turning point at (2,0), vertical asymptote x = 0, and horizontal asymptote y = k]").
+          * Omission Fallback: If a question relies strictly on a visual diagram that CANNOT be completely, unambiguously, and accurately formulated into pure text/LaTeX without losing solvability, OMIT the entire question entry.
+				- If the markers' report has a "Remarks" or "Comments" column separate from the "Solution" column — extract only the Solution column content as the answer. Discard remarks/comments columns entirely (they are examiner notes, not part of the solution).
 				- If a solution shows multiple methods (e.g. "Alternatively," "Method 1" / "Method 2"), extract all methods, keeping them clearly labeled and separate.
 				- If a solution or question continues onto a new PDF page without a new question number appearing, treat it as a continuation of the same question — do not split it into a separate entry.
-				- If a question or solution includes a diagram, sketch, or figure that carries required content (e.g. a graph sketch that is part of the marked answer or a diagram that is required for understanding the problem), skip the entire question and solution for that problem and do not include it in the output. In fact, all questions and solutions with graphical elements should be omitted.
         - The year of the question can usually be inferred from the question title.
         - The solution should be question agnostic, i.e: it should not reference the question title or any other metadata. It should be in the form (a), (b), or (bi), (cii) etc, and not 1(a), 1(b), 1(b)(i) etc. The solution should be in the same order as the question parts, i.e: (a) first, then (b), then (c) etc.
 

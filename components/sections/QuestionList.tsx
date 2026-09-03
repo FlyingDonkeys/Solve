@@ -4,12 +4,13 @@ import {useState, useMemo, useRef, useEffect} from "react";
 import { TopicToggle } from "@/components/elements/TopicToggle";
 import { SolutionCollapsible } from "@/components/elements/SolutionCollapsible";
 import Latex from 'react-latex-next';
-import { QuestionWithSubtopicRelations, SubtopicRow } from "@/app/questions/page";
+import "katex/dist/katex.min.css";
+import {QuestionWithSubtopicRelations, SubtopicRow, TopicGroup} from "@/app/questions/page";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 
 interface QuestionListProps {
   initialQuestions: QuestionWithSubtopicRelations[];
-  subtopics: string[];
+  topicGroups: TopicGroup[];
 }
 
 function generateColour(subtopic: SubtopicRow | null): string {
@@ -29,8 +30,18 @@ function generateColour(subtopic: SubtopicRow | null): string {
   return possibleColourClasses[getUniqueId(relatedTopic) % possibleColourClasses.length];
 }
 
-export function QuestionList({ initialQuestions, subtopics }: QuestionListProps) {
+export function QuestionList({ initialQuestions, topicGroups }: QuestionListProps) {
   const [activeSubtopics, setActiveSubtopics] = useState<string[]>([]);
+  // Default to first topic, as we want to avoid the ALL state
+  const [selectedTopic, setSelectedTopic] = useState<string>(topicGroups[0].topic_name);
+
+  // Derive subtopics belonging to the selected main topic
+  const visibleSubtopics = useMemo(() => {
+    if (!selectedTopic) {
+      return topicGroups.flatMap((g) => g.subtopics);
+    }
+    return topicGroups.find((g) => g.topic_name === selectedTopic)?.subtopics ?? [];
+  }, [topicGroups, selectedTopic]);
 
   const listRef = useRef<HTMLDivElement>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
@@ -55,7 +66,7 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
       const questionSubtopics = question.question_subtopic_junction.map(
         (j) => j.Subtopics?.subtopic_name
       );
-      return activeSubtopics.every((active) => questionSubtopics.includes(active));
+      return activeSubtopics.some((active) => questionSubtopics.includes(active));
     });
   }, [initialQuestions, activeSubtopics]);
 
@@ -63,6 +74,17 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
     setActiveSubtopics((prev) =>
       prev.includes(subtopic) ? prev.filter((s) => s !== subtopic) : prev.concat([subtopic])
     );
+  };
+
+  const measureCard = (node: HTMLElement | null) => {
+    if (node) {
+      queueMicrotask(() => {
+        // Ensure the card is still mounted before measuring
+        if (node.isConnected) {
+          virtualizer.measureElement(node);
+        }
+      });
+    }
   };
 
   const virtualizer = useWindowVirtualizer({
@@ -88,31 +110,62 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
       </header>
 
       {/* Topic and Subtopic Filters Section */}
-      <section className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8 my-6 py-6 border-t border-b border-neutral-400">
+      <section className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8 my-6 py-6 border-t border-b border-neutral-800">
         <div className="md:w-48 shrink-0 flex flex-col gap-1">
           <h2 className="text-xl font-semibold tracking-wider text-neutral-400">
-            Filter by Subtopic
+            Filter Topics
           </h2>
           {activeSubtopics.length > 0 && (
             <button
               onClick={() => setActiveSubtopics([])}
-              className="text-sm text-neutral-500 hover:text-neutral-300 underline text-left cursor-pointer"
+              className="text-xs text-neutral-500 hover:text-neutral-300 underline text-left cursor-pointer"
             >
-              Reset Filters
+              Reset Filters ({activeSubtopics.length})
             </button>
           )}
         </div>
 
-        {/* Flexible Tag Cloud */}
-        <div className="flex flex-wrap gap-2">
-          {subtopics.map((subtopicName) => (
-            <TopicToggle
-              key={subtopicName}
-              topicName={subtopicName}
-              isActive={activeSubtopics.includes(subtopicName)}
-              onClick={() => toggleFilter(subtopicName)}
-            />
-          ))}
+        <div className="flex flex-col gap-4 w-full">
+          {/* Tier 1: Main Topic Tabs */}
+          <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-neutral-900">
+            {topicGroups.map((group) => {
+              const isSelected = selectedTopic === group.topic_name;
+
+              return (
+                <button
+                  key={group.topic_name}
+                  type="button"
+                  onClick={() => {
+                    setSelectedTopic(group.topic_name)
+                    setActiveSubtopics([])
+                  }}
+                  className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer border ${
+                    isSelected 
+                      ? "bg-neutral-400 text-black border-neutral-400"
+                      : "bg-neutral-900/60 text-neutral-400 hover:text-neutral-200 border-neutral-800 hover:border-neutral-700"
+                  }`}
+                >
+                  <span>{group.topic_name}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Tier 2: Subtopics Cloud */}
+          <div className="flex flex-wrap gap-2 pt-1 min-h-[200px] md:min-h-[81px] content-start">
+            {visibleSubtopics.length === 0 ? (
+              <span className="text-xs text-neutral-600 italic">No subtopics found</span>
+            ) : (
+              visibleSubtopics.map((subtopicName) => (
+                <TopicToggle
+                  key={subtopicName}
+                  topicName={subtopicName}
+                  isActive={activeSubtopics.includes(subtopicName)}
+                  onClick={() => toggleFilter(subtopicName)}
+                />
+              ))
+            )}
+          </div>
         </div>
       </section>
 
@@ -144,7 +197,7 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
                 <article
                   key={virtualItem.key}
                   data-index={virtualItem.index}
-                  ref={virtualizer.measureElement}
+                  ref={measureCard}
                   className="rounded-xl border-2 border-neutral-800 bg-neutral-900/50 p-6 my-6 shadow-sm transition-colors hover:border-gray-400"
                 >
                   {/* Meta Header */}
@@ -180,11 +233,6 @@ export function QuestionList({ initialQuestions, subtopics }: QuestionListProps)
                       })}
                     </div>
                   </div>
-
-                  {/* Question Title */}
-                  <h2 className="text-xl font-semibold text-neutral-100 mb-6 leading-snug">
-                    {question.question_title}
-                  </h2>
 
                   {/* Question Content */}
                   <div className="whitespace-pre-line text-neutral-200 text-base leading-relaxed mb-6">

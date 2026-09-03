@@ -2,7 +2,6 @@
 import { adminClient } from "@/lib/supabase/client";
 import { Database } from "@/types/database.types";
 import { QuestionList } from "@/components/sections/QuestionList";
-import "katex/dist/katex.min.css";
 
 type QuestionRow = Database["public"]["Tables"]["questions"]["Row"];
 export type SubtopicRow = Database["public"]["Tables"]["subtopics"]["Row"];
@@ -13,6 +12,11 @@ export type QuestionWithSubtopicRelations = QuestionRow & {
     Subtopics: SubtopicRow | null;
   }[];
 };
+
+export interface TopicGroup {
+  topic_name: string;
+  subtopics: string[];
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -35,20 +39,30 @@ async function fetchQuestions(): Promise<QuestionWithSubtopicRelations[]> {
   return (data as QuestionWithSubtopicRelations[]) ?? [];
 }
 
-// Pass questions array directly to avoid querying Supabase twice
-function extractUniqueSubtopics(questions: QuestionWithSubtopicRelations[]): string[] {
-  const subtopicNames = questions.flatMap((question) =>
-    question.question_subtopic_junction.map((junction) => junction.Subtopics?.subtopic_name ?? "")
-  );
-  subtopicNames.sort((a, b) => a.localeCompare(b))
-  return [...new Set(subtopicNames)].filter(Boolean);
+async function fetchTopicGroups(): Promise<TopicGroup[]> {
+  const { data, error } = await adminClient
+    .from("topics")
+    .select(`
+      topic_name,
+      subtopics (
+        subtopic_name
+      )
+    `)
+    .order("topic_name", { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map((t) => ({
+    topic_name: t.topic_name,
+    subtopics: (t.subtopics ?? []).map((s) => s.subtopic_name),
+  }));
 }
 
 export default async function QuestionsPage() {
   const questions = await fetchQuestions();
-  const subtopics = extractUniqueSubtopics(questions);
+  const topicGroups = await fetchTopicGroups();
 
   return (
-    <QuestionList initialQuestions={questions} subtopics={subtopics} />
+    <QuestionList initialQuestions={questions} topicGroups={topicGroups} />
   );
 }
