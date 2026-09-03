@@ -27,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={cn("h-full", "antialiased", "dark", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
       <body className="min-h-full flex flex-col white overflow-y-scroll">
+        <Navbar/>
         {children}
       </body>
     </html>

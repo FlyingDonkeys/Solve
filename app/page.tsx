@@ -19,7 +19,7 @@ export default function Home() {
         </h1>
 
         <p className="max-w-xl mx-auto text-base sm:text-lg text-neutral-400 leading-relaxed">
-          Drill past-year questions, filter by granular subtopics, and verify your
+          Drill curated past-year questions, filter by granular subtopics, and verify your
           working with step-by-step LaTeX solutions.
         </p>
 
@@ -28,7 +28,7 @@ export default function Home() {
             href="/questions"
             className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-neutral-200"
           >
-            Browse Questions
+            Browse Problems
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -53,7 +53,7 @@ export default function Home() {
           </div>
           <h2 className="text-sm font-semibold text-white">High-Fidelity Math</h2>
           <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-            Questions and algebraic formulas rendered with KaTeX for sharp, readable
+            Problems and algebraic formulas rendered with KaTeX for sharp, readable
             notation across devices.
           </p>
         </div>
