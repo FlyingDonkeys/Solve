@@ -90,7 +90,8 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
   const virtualizer = useWindowVirtualizer({
     count: displayedQuestions.length,
     estimateSize: () => 500,
-    scrollMargin
+    scrollMargin,
+    overscan: 5
   });
 
   const virtualItems = virtualizer.getVirtualItems();
@@ -175,30 +176,34 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
         className="flex flex-col mb-8"
       >
         <div
-          className="relative"
+          className="relative w-full"
           style={{ height: `${virtualizer.getTotalSize()}px` }}
         >
-          <div
-            className="absolute top-0 left-0 w-full"
-            style={{
-              transform: `translateY(${(virtualItems[0]?.start ?? 0) - scrollMargin}px)`
-            }}
-          >
-            {virtualItems.map((virtualItem) => {
-              const question = displayedQuestions[virtualItem.index];
+          {virtualItems.map((virtualItem) => {
+            const question = displayedQuestions[virtualItem.index];
 
-              const formattedDate = new Date(question.created_at).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              });
+            const formattedDate = new Date(question.created_at).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            });
 
-              return (
+            return (
+              <div
+                key={virtualItem.key}
+                data-index={virtualItem.index}
+                ref={measureCard}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  transform: `translateY(${virtualItem.start - scrollMargin}px)`,
+                }}
+                className="pb-6"
+              >
                 <article
-                  key={virtualItem.key}
-                  data-index={virtualItem.index}
-                  ref={measureCard}
-                  className="rounded-xl border-2 border-neutral-800 bg-neutral-900/50 p-6 my-6 shadow-sm transition-colors hover:border-gray-400"
+                  className="rounded-xl border-2 border-neutral-800 bg-neutral-900/50 p-6 shadow-sm transition-colors hover:border-gray-400"
                 >
                   {/* Meta Header */}
                   <div className="flex flex-wrap flex-col gap-4">
@@ -227,8 +232,8 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
                             key={junction.subtopic_id}
                             className={`rounded-md px-2.5 py-1 text-xs font-medium border ${generateColour(subtopic)}`}
                           >
-                            {subtopicName}
-                          </span>
+                      {subtopicName}
+                    </span>
                         );
                       })}
                     </div>
@@ -246,9 +251,9 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
                     />
                   )}
                 </article>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
