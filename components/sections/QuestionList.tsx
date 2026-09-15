@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import "katex/dist/katex.min.css";
 
 import { QuestionFilters } from "@/components/compounds/QuestionFilters";
-import { QuestionListHeader } from "@/components/compounds/QuestionListHeader";
 import { VirtualizedQuestionFeed } from "@/components/compounds/VirtualizedQuestionFeed";
 import { filterQuestionsBySubtopic, QUESTION_BATCH_SIZE } from "@/lib/questions";
 import type {
@@ -75,7 +74,13 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
 
   return (
     <div className="mx-auto mt-8 w-3/4 px-4">
-      <QuestionListHeader questionCount={displayedQuestions.length} />
+      <header className="mb-4 grid items-center gap-2 text-center md:grid-cols-3">
+        <div />
+        <h1 className="text-3xl font-bold">Problems</h1>
+        <p className="text-sm font-normal text-neutral-600 md:hidden">
+          Please use a laptop or tablet for a better viewing experience.
+        </p>
+      </header>
       <QuestionFilters
         topicGroups={topicGroups}
         selectedTopic={selectedTopic}
@@ -84,13 +89,6 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
         onToggleSubtopic={toggleFilter}
         onResetSubtopics={() => setActiveSubtopics([])}
       />
-      {hasMore && (
-        <p role="status" className="mb-4 text-sm text-neutral-400">
-          {loadError
-            ? "Could not load more problems. Refresh the page to try again."
-            : "Loading more problems. Counts and filters reflect problems loaded so far."}
-        </p>
-      )}
       <VirtualizedQuestionFeed questions={displayedQuestions} />
     </div>
   );
