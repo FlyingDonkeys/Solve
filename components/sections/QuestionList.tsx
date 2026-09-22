@@ -92,10 +92,6 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
         onToggleSubtopic={toggleFilter}
         onResetSubtopics={() => setActiveSubtopics([])}
       />
-      <div className="my-6 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-        <p role="status"><span className="font-medium text-foreground">{displayedQuestions.length}</span> {displayedQuestions.length === 1 ? "problem" : "problems"}{hasMore ? " loaded" : ""}{activeSubtopics.length > 0 ? " matching your filters" : " to explore"}</p>
-        {hasMore && !loadError && <p role="status" className="inline-flex items-center gap-2"><LoaderCircle aria-hidden="true" className="size-3.5 motion-safe:animate-spin" />Loading more problems…</p>}
-      </div>
       {loadError && (
         <div role="alert" className="surface-panel mb-6 flex flex-wrap items-center justify-between gap-4 p-4 text-sm">
           <p className="text-muted-foreground">Couldn’t load more problems. You can still practise with those already loaded.</p>
