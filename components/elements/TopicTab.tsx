@@ -14,10 +14,10 @@ export function TopicTab({
       type="button"
       onClick={onClick}
       aria-pressed={isSelected}
-      className={`relative inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
+      className={`inline-flex min-h-10 items-center rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors ${
         isSelected
-          ? "border-neutral-400 bg-neutral-400 text-black"
-          : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
       }`}
     >
       {topicName}

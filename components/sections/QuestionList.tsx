@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { BookOpen, LoaderCircle, RotateCcw, SearchX } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import "katex/dist/katex.min.css";
 
 import { QuestionFilters } from "@/components/compounds/QuestionFilters";
@@ -22,6 +24,7 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
     initialQuestions.length === QUESTION_BATCH_SIZE,
   );
   const [loadError, setLoadError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const [activeSubtopics, setActiveSubtopics] = useState<string[]>([]);
   const [selectedTopic, setSelectedTopic] = useState(
     topicGroups[0]?.topic_name ?? "",
@@ -52,7 +55,7 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
     // Appending a successful batch triggers the next fetch after rendering.
     void loadNextBatch();
     return () => controller.abort();
-  }, [questions.length, hasMore]);
+  }, [questions.length, hasMore, retryCount]);
 
   const displayedQuestions = useMemo(
     () => filterQuestionsBySubtopic(questions, activeSubtopics),
@@ -73,13 +76,13 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
   };
 
   return (
-    <div className="mx-auto mt-8 w-3/4 px-4">
-      <header className="mb-4 grid items-center gap-2 text-center md:grid-cols-3">
-        <div />
-        <h1 className="text-3xl font-bold">Problems</h1>
-        <p className="text-sm font-normal text-neutral-600 md:hidden">
-          Please use a laptop or tablet for a better viewing experience.
-        </p>
+    <main className="page-container py-10 sm:py-14">
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-5">
+        <div>
+          <p className="eyebrow mb-3">H2 Mathematics</p>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">The question bank</h1>
+          <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">Pick a subtopic. Find your focus. Work at your own pace.</p>
+        </div>
       </header>
       <QuestionFilters
         topicGroups={topicGroups}
@@ -89,7 +92,26 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
         onToggleSubtopic={toggleFilter}
         onResetSubtopics={() => setActiveSubtopics([])}
       />
-      <VirtualizedQuestionFeed questions={displayedQuestions} />
-    </div>
+      <div className="my-6 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+        <p role="status"><span className="font-medium text-foreground">{displayedQuestions.length}</span> {displayedQuestions.length === 1 ? "problem" : "problems"}{hasMore ? " loaded" : ""}{activeSubtopics.length > 0 ? " matching your filters" : " to explore"}</p>
+        {hasMore && !loadError && <p role="status" className="inline-flex items-center gap-2"><LoaderCircle aria-hidden="true" className="size-3.5 motion-safe:animate-spin" />Loading more problems…</p>}
+      </div>
+      {loadError && (
+        <div role="alert" className="surface-panel mb-6 flex flex-wrap items-center justify-between gap-4 p-4 text-sm">
+          <p className="text-muted-foreground">Couldn’t load more problems. You can still practise with those already loaded.</p>
+          <button type="button" onClick={() => { setLoadError(false); setRetryCount((count) => count + 1); }} className={buttonVariants({ variant: "outline" })}>
+            <RotateCcw aria-hidden="true" className="size-4" />Try again
+          </button>
+        </div>
+      )}
+      {displayedQuestions.length > 0 ? <VirtualizedQuestionFeed questions={displayedQuestions} /> : (
+        <section className="surface-panel px-6 py-14 text-center">
+          <SearchX aria-hidden="true" className="mx-auto mb-4 size-7 text-muted-foreground" />
+          <h2 className="text-lg font-semibold">{hasMore && !loadError ? "Looking for problems…" : activeSubtopics.length > 0 ? "No matching problems yet" : "No problems available yet"}</h2>
+          <p className="mt-2 text-sm leading-7 text-muted-foreground">{hasMore && !loadError ? "More problems are on their way. Your filters will apply as they arrive." : activeSubtopics.length > 0 ? "Try another subtopic or clear your filters to explore more problems." : "Check back soon for more practice."}</p>
+          {activeSubtopics.length > 0 && <button type="button" onClick={() => setActiveSubtopics([])} className={buttonVariants({ variant: "outline", className: "mt-5" })}>Clear filters</button>}
+        </section>
+      )}
+    </main>
   );
 }

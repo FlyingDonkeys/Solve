@@ -25,24 +25,24 @@ export function QuestionFilters({
     : topicGroups.flatMap((group) => group.subtopics);
 
   return (
-    <section className="my-4 flex flex-col gap-4 border-b border-neutral-800 py-4 md:flex-row md:items-start md:gap-8">
-      <div className="flex shrink-0 flex-col gap-1 md:w-48">
-        <h2 className="text-xl font-semibold tracking-wider text-neutral-400">
-          Filter Topics
+    <section aria-labelledby="filter-heading" className="surface-panel flex flex-col gap-5 p-5 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="filter-heading" className="text-sm font-semibold">
+          Focus your practice
         </h2>
         {activeSubtopics.length > 0 && (
           <button
             type="button"
             onClick={onResetSubtopics}
-            className="cursor-pointer text-left text-xs text-neutral-500 underline hover:text-neutral-300"
+            className="min-h-9 rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            Reset Filters ({activeSubtopics.length})
+            Clear filters ({activeSubtopics.length})
           </button>
         )}
       </div>
 
-      <div className="flex w-full flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2 border-b border-neutral-900 pb-2">
+      <div className="flex min-w-0 flex-col gap-4">
+        <div role="group" aria-label="Topic groups" className="flex flex-wrap items-center gap-2 border-b border-border pb-4">
           {topicGroups.map((group) => (
             <TopicTab
               key={group.topic_name}
@@ -53,10 +53,11 @@ export function QuestionFilters({
           ))}
         </div>
 
-        <div className="flex min-h-[200px] flex-wrap content-start gap-2 pt-1 md:min-h-[81px]">
+        <p className="text-xs leading-5 text-muted-foreground">Choose one or more subtopics to filter the questions. With none selected, all problems are shown.</p>
+        <div role="group" aria-label="Subtopic filters" className="flex flex-wrap content-start gap-2">
           {visibleSubtopics.length === 0 ? (
-            <span className="text-xs italic text-neutral-600">
-              No subtopics found
+            <span className="text-sm text-muted-foreground">
+              No subtopics available for this topic.
             </span>
           ) : (
             visibleSubtopics.map((subtopicName) => (

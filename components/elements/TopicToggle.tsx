@@ -1,7 +1,7 @@
 // components/elements/TopicToggle.tsx
 "use client";
 
-import { Circle } from "lucide-react"
+import { Check, Plus } from "lucide-react"
 
 interface TopicToggleProps {
   topicName: string;
@@ -15,13 +15,11 @@ export function TopicToggle({ topicName, isActive, onClick }: TopicToggleProps) 
       type="button"
       onClick={onClick}
       aria-label={`Filter by ${topicName}`}
+      aria-pressed={isActive}
       data-state={isActive ? "on" : "off"}
-      className="group/toggle border border-neutral-600 inline-flex items-center gap-2.5 h-auto py-1.5 px-3
-      rounded-full text-sm hover:bg-neutral-600 data-[state=on]:bg-neutral-800 transition-colors cursor-pointer"
+      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[state=on]:border-accent-foreground/30 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
     >
-      <Circle className="h-2.5 w-2.5 shrink-0 fill-transparent text-neutral-400 transition-colors
-      group-data-[state=on]/toggle:fill-white group-data-[state=on]/toggle:text-white" 
-      />
+      {isActive ? <Check aria-hidden="true" className="size-3.5 shrink-0" /> : <Plus aria-hidden="true" className="size-3.5 shrink-0" />}
       <span>{topicName}</span>
     </button>
   )

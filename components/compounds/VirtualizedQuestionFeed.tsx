@@ -27,8 +27,16 @@ export function VirtualizedQuestionFeed({
     };
 
     calculateOffset();
+    // Filters and status messages above the feed can change its position.
+    const observer = new ResizeObserver(calculateOffset);
+    if (listRef.current?.parentElement) {
+      observer.observe(listRef.current.parentElement);
+    }
     window.addEventListener("resize", calculateOffset);
-    return () => window.removeEventListener("resize", calculateOffset);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", calculateOffset);
+    };
   }, []);
 
   const virtualizer = useWindowVirtualizer({

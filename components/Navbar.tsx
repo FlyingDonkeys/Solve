@@ -1,67 +1,39 @@
-// components/Navbar.tsx
-import Link from 'next/link'
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu'
-import {ArrowUpRight} from "lucide-react";
+﻿"use client";
 
-interface NavItem {
-  href: string
-  text: string
-  external?: boolean
-}
-
-const navigationMenuInfo: NavItem[] = [
-  { href: "/", text: "Home" },
-  { href: "/questions", text: "Problems" },
-  { href: "https://t.me/FlyingDonkey1", text: "Contact Us", external: true },
-]
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ArrowUpRight, Sigma } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function Navbar() {
+  const pathname = usePathname();
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-neutral-800 bg-black/75 backdrop-blur-md">
-      {/* Aligns with your page content width */}
-      <div className="flex mx-[5vw] h-14 items-center justify-between">
-        {/* Brand */}
-        <Link
-          href="/"
-          className="text-lg md:text-2xl font-bold tracking-tight text-white hover:text-neutral-300 transition-colors"
-        >
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur-xl">
+      <div className="page-container flex h-16 items-center justify-between gap-3">
+        <Link href="/" aria-label="Solve home" className="flex shrink-0 items-center gap-2.5 rounded-md text-xl font-semibold tracking-tight">
+          <span className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-accent-foreground">
+            <Sigma aria-hidden="true" className="size-5" />
+          </span>
           Solve
         </Link>
-
-        {/* Navigation Items */}
-        <NavigationMenu>
-          <NavigationMenuList className="flex gap-1">
-            {
-              navigationMenuInfo.map((item, index) => {
-                const isExternal = item.external || item.href.startsWith("http");
-
-                return (
-                  <NavigationMenuItem
-                    key={index}
-                  >
-                    <NavigationMenuLink
-                      href={item.href}
-                      target={isExternal ? "_blank" : undefined}
-                      rel={isExternal ? "noopener noreferrer" : undefined}
-                      aria-label={isExternal ? `${item.text} (opens in a new tab)` : undefined}
-                      className={`${navigationMenuTriggerStyle()} text-sm md:text-base bg-transparent text-neutral-400 hover:bg-neutral-800 hover:text-white focus:bg-neutral-900 focus:text-white data-[active]:text-white`}
-                    >
-                      {item.text}
-                      {isExternal && <ArrowUpRight className="h-4 w-4 shrink-0 text-neutral-500" />}
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                );
-              })}
-          </NavigationMenuList>
-        </NavigationMenu>
-
+        <nav aria-label="Main navigation" className="flex items-center gap-1">
+          {[{ href: "/", label: "Home" }, { href: "/questions", label: "Problems" }].map(({ href, label }) => {
+            const active = href === "/" ? pathname === href : pathname.startsWith(href);
+            return (
+              <Link key={href} href={href} aria-current={active ? "page" : undefined}
+                className={cn("inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors", active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground")}>
+                {label}
+              </Link>
+            );
+          })}
+          <a href="https://t.me/FlyingDonkey1" target="_blank" rel="noopener noreferrer" aria-label="Contact us (opens in a new tab)"
+            className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground">
+            <span className="hidden sm:inline">Contact</span>
+            <ArrowUpRight aria-hidden="true" className="size-4" />
+          </a>
+        </nav>
       </div>
     </header>
-  )
+  );
 }

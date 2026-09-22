@@ -1,14 +1,10 @@
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+﻿"use client";
 
-import 'katex/dist/katex.min.css';
-import Latex from 'react-latex-next';
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import {useState} from "react";
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import Latex from "react-latex-next";
+import "katex/dist/katex.min.css";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface SolutionCollapsibleProps {
   contentText: string;
@@ -18,23 +14,16 @@ export function SolutionCollapsible({ contentText }: SolutionCollapsibleProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Collapsible className="rounded-md bg-neutral-800">
-      <CollapsibleTrigger
-        className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "p-4 justify-between text-xs font-semibold uppercase text-neutral-400 hover:bg-neutral-700 hover:text-white")}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? "Hide Solution" : "Show Solution"}
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="rounded-xl border border-border bg-muted/30">
+      <CollapsibleTrigger className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground">
+        {isOpen ? "Hide solution" : "Show solution"}
+        <ChevronDown aria-hidden="true" className={`size-4 shrink-0 transition-transform motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`} />
       </CollapsibleTrigger>
-
-      { isOpen && (
-        <CollapsibleContent
-          className="p-4 whitespace-pre-line text-base"
-        >
-          <Latex>
-            {contentText}
-          </Latex>
-        </CollapsibleContent>)
-      }
+      <CollapsibleContent>
+        <div className="math-content whitespace-pre-line border-t border-border p-4 sm:p-5">
+          <Latex>{contentText}</Latex>
+        </div>
+      </CollapsibleContent>
     </Collapsible>
-  )
+  );
 }

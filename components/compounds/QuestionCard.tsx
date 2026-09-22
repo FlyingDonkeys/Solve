@@ -19,25 +19,25 @@ export function QuestionCard({ question }: QuestionCardProps) {
   );
 
   return (
-    <article className="rounded-xl border-2 border-neutral-800 bg-neutral-900/50 p-6 shadow-sm transition-colors hover:border-gray-400">
+    <article className="surface-panel min-w-0 p-5 sm:p-7">
       <div className="flex flex-col flex-wrap gap-4">
-        <div className="flex flex-wrap items-center justify-between">
-          <div className="flex flex-wrap items-center gap-x-4">
-            <p className="inline-flex items-center rounded-md border border-neutral-700 bg-neutral-800 px-2.5 py-1 text-xs font-medium text-neutral-200">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="meta-badge">
               {question.subject}
             </p>
             {question.year_of_question && (
-              <p className="inline-flex items-center rounded-md border border-neutral-600 bg-neutral-700 px-2.5 py-1 text-xs font-medium text-neutral-400">
+              <p className="meta-badge">
                 {question.year_of_question}
               </p>
             )}
           </div>
-          <p className="font-mono text-xs text-neutral-400">
+          <p className="text-xs text-muted-foreground">
             Added {formattedDate}
           </p>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-4">
+        <div className="mb-5 flex flex-wrap items-center gap-2">
           {question.question_subtopic_junction.map((junction) => (
             <QuestionSubtopicBadge
               key={junction.subtopic_id}
@@ -47,7 +47,7 @@ export function QuestionCard({ question }: QuestionCardProps) {
         </div>
       </div>
 
-      <div className="mb-6 whitespace-pre-line text-base leading-relaxed text-neutral-200">
+      <div className="math-content mb-6 whitespace-pre-line">
         <Latex>{question.question_content}</Latex>
       </div>
 

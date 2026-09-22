@@ -15,13 +15,9 @@ function getSupabaseCredentials() {
     (typeof process !== 'undefined' && Array.isArray(process.argv) && process.argv.includes('--prod'))
 
   const supabaseUrl =
-    (isProd ? process.env.SUPABASE_URL_PROD : process.env.SUPABASE_URL_LOCAL) ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL
-
+    (isProd ? process.env.SUPABASE_URL_PROD : process.env.SUPABASE_URL_LOCAL)
   const supabaseKey =
-    (isProd ? process.env.SUPABASE_SECRET_KEY_PROD : process.env.SUPABASE_SECRET_KEY_LOCAL) ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    (isProd ? process.env.SUPABASE_SECRET_KEY_PROD : process.env.SUPABASE_SECRET_KEY_LOCAL)
 
   if (!supabaseUrl || !supabaseKey) {
     const envType = isProd ? 'PRODUCTION' : 'LOCAL'
