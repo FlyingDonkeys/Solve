@@ -58,6 +58,7 @@ export type Database = {
           question_solution: string | null
           question_title: string
           subject: string
+          video_id: string | null
           year_of_question: number | null
         }
         Insert: {
@@ -67,6 +68,7 @@ export type Database = {
           question_solution?: string | null
           question_title: string
           subject?: string
+          video_id?: string | null
           year_of_question?: number | null
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           question_solution?: string | null
           question_title?: string
           subject?: string
+          video_id?: string | null
           year_of_question?: number | null
         }
         Relationships: []
