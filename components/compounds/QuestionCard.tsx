@@ -20,7 +20,7 @@ export function QuestionCard({ question }: QuestionCardProps) {
 
   return (
     <article className="surface-panel min-w-0 p-5 sm:p-7">
-      <div className="flex flex-col flex-wrap gap-4">
+      <div className="flex flex-col mb-5 flex-wrap gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <p className="meta-badge">
@@ -37,7 +37,7 @@ export function QuestionCard({ question }: QuestionCardProps) {
           </p>
         </div>
 
-        <div className="mb-5 flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {question.question_subtopic_junction.map((junction) => (
             <QuestionSubtopicBadge
               key={junction.subtopic_id}
@@ -47,7 +47,11 @@ export function QuestionCard({ question }: QuestionCardProps) {
         </div>
       </div>
 
-      <div className="math-content mb-6 whitespace-pre-line">
+      <div className="text-2xl font-bold mb-5 whitespace-pre-line">
+        {question.question_title}
+      </div>
+
+      <div className="math-content mb-5 whitespace-pre-line">
         <Latex>{question.question_content}</Latex>
       </div>
 

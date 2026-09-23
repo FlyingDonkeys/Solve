@@ -76,12 +76,12 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
   };
 
   return (
-    <main className="page-container py-10 sm:py-14">
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-5">
+    <main className="page-container flex flex-col gap-8 py-10 sm:py-14">
+      <header className="flex flex-wrap items-end justify-between gap-4 mb-4">
         <div>
           <p className="eyebrow mb-3">H2 Mathematics</p>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">The question bank</h1>
-          <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">Pick a subtopic. Find your focus. Work at your own pace.</p>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">The Problems</h1>
+          <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">Pick a subtopic. Master the subtopic. Work at your own pace.</p>
         </div>
       </header>
       <QuestionFilters
@@ -92,10 +92,6 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
         onToggleSubtopic={toggleFilter}
         onResetSubtopics={() => setActiveSubtopics([])}
       />
-      <div className="my-6 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-        <p role="status"><span className="font-medium text-foreground">{displayedQuestions.length}</span> {displayedQuestions.length === 1 ? "problem" : "problems"}{hasMore ? " loaded" : ""}{activeSubtopics.length > 0 ? " matching your filters" : " to explore"}</p>
-        {hasMore && !loadError && <p role="status" className="inline-flex items-center gap-2"><LoaderCircle aria-hidden="true" className="size-3.5 motion-safe:animate-spin" />Loading more problems…</p>}
-      </div>
       {loadError && (
         <div role="alert" className="surface-panel mb-6 flex flex-wrap items-center justify-between gap-4 p-4 text-sm">
           <p className="text-muted-foreground">Couldn’t load more problems. You can still practise with those already loaded.</p>
