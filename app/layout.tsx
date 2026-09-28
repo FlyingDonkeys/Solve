@@ -3,6 +3,7 @@ import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-dvh flex-col overflow-y-scroll">
         <Navbar/>
         {children}
+        <Footer />
       </body>
     </html>
   );
