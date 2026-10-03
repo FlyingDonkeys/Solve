@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          last_seen: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          last_seen?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          last_seen?: string | null
+        }
+        Relationships: []
+      }
       question_subtopic_junction: {
         Row: {
           created_at: string
