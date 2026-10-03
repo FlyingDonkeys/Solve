@@ -49,6 +49,11 @@ export default async function QuestionsPage({ searchParams }: PageProps<"/questi
     fetchTopicGroups(),
   ]);
 
+  await supabase
+    .from('profiles')
+    .update({ last_seen: new Date().toISOString() })
+    .eq('id', user.id);
+
   return (
     <QuestionList initialQuestions={questions} topicGroups={topicGroups} />
   );
