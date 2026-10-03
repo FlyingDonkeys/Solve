@@ -36,7 +36,7 @@ export default async function QuestionsPage({ searchParams }: PageProps<"/questi
     return <ErrorPage />;
   }
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const { data: { user }, error } = (await supabase.auth.getUser());
 
   if (error || !user) {
     return (
@@ -62,7 +62,7 @@ export default async function QuestionsPage({ searchParams }: PageProps<"/questi
       .from('profiles')
       .update({
         last_seen: new Date().toISOString(),
-        practice_count: profile.practice_count ?? 0 + 1,
+        practice_count: (profile.practice_count ?? 0) + 1,
       })
       .eq('id', user.id);
 
