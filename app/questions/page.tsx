@@ -49,16 +49,26 @@ export default async function QuestionsPage({ searchParams }: PageProps<"/questi
     fetchTopicGroups(),
   ]);
 
-  const { error: activityError } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .update({ 
-      last_seen: new Date().toISOString() 
-    
-    })
-    .eq('id', user.id);
+    .select('practice_count')
+    .eq('id', user.id)
+    .single();
 
-  if (activityError) {
-    console.error("Failed to update last_seen, activityError.message")
+  if (profileError) {
+    console.error("Failed to fetch practice count:", profileError.message);
+  } else {
+    const { error: activityError } = await supabase
+      .from('profiles')
+      .update({
+        last_seen: new Date().toISOString(),
+        practice_count: profile.practice_count ?? 0 + 1,
+      })
+      .eq('id', user.id);
+
+    if (activityError) {
+      console.error("Failed to update practice activity:", activityError.message);
+    }
   }
 
   return (
