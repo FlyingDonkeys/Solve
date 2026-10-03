@@ -49,10 +49,17 @@ export default async function QuestionsPage({ searchParams }: PageProps<"/questi
     fetchTopicGroups(),
   ]);
 
-  await supabase
+  const { error: activityError } = await supabase
     .from('profiles')
-    .update({ last_seen: new Date().toISOString() })
+    .update({ 
+      last_seen: new Date().toISOString() 
+    
+    })
     .eq('id', user.id);
+
+  if (activityError) {
+    console.error("Failed to update last_seen, activityError.message")
+  }
 
   return (
     <QuestionList initialQuestions={questions} topicGroups={topicGroups} />
