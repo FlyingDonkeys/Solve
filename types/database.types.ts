@@ -20,21 +20,21 @@ export type Database = {
           email: string
           id: string
           last_seen: string | null
-          practice_count: number | null
+          practice_count: number
         }
         Insert: {
           created_at?: string
           email: string
           id: string
           last_seen?: string | null
-          practice_count?: number | null
+          practice_count?: number
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
           last_seen?: string | null
-          practice_count?: number | null
+          practice_count?: number
         }
         Relationships: []
       }
