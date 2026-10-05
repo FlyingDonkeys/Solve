@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Solve",
   description: "Focused H2 Mathematics practice with curated questions and step-by-step solutions.",
+  verification: {
+    google: "sfhN38Ye9w3lEHz1fCJMkT9O667Xyw-W1-CleDeThFg",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -77,43 +77,40 @@ async function runIngestion() {
 
   for (const folder of folders) {
     const folderPath = path.join(QUESTION_BANK_DIR, folder.name);
-    const files = fs.readdirSync(folderPath);
+    const files = fs.readdirSync(folderPath, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.pdf'))
+      .map((entry) => entry.name);
 
-    const qpFile = files.find((f) => f.toLowerCase().includes('qp') && f.endsWith('.pdf'));
-    const ansFile = files.find((f) => f.toLowerCase().includes('ans') && f.endsWith('.pdf'));
-
-    if (!qpFile) {
-      console.warn(`[Skip] No QP PDF found in folder: ${folder.name}`);
+    if (files.length === 0) {
+      console.warn(`No PDFs found in: ${folder.name}`);
       continue;
+    }
+
+    if (files.length > 2) {
+      console.warn(`There are more than 2 files being processed, we generally expect only the question and answer scheme.`);
     }
 
     console.log(`Processing: ${folder.name}...`);
 
 		try {
-			const qpPath = path.join(folderPath, qpFile);
-			const qpBase64 = await loadPdfAsBase64(qpPath);
+      const contentBlocks: Anthropic.MessageParam['content'] = [];
 
-			const contentBlocks: Anthropic.MessageParam['content'] = [
-				{
-					type: 'document',
-					source: { type: 'base64', media_type: 'application/pdf', data: qpBase64 },
-				},
-			];
+      for (const file of files) {
+        const filePath = path.join(folderPath, file);
+        const fileInformation = await loadPdfAsBase64(filePath);
 
-			if (ansFile) {
-				const ansPath = path.join(folderPath, ansFile);
-				const ansBase64 = await loadPdfAsBase64(ansPath);
-				contentBlocks.push({
-					type: 'document',
-					source: { type: 'base64', media_type: 'application/pdf', data: ansBase64 },
-				});
-			}
+        contentBlocks.push({
+          title: file,
+          type: 'document',
+          source: { type: 'base64', media_type: 'application/pdf', data: fileInformation },
+        });
+      }
 
 			contentBlocks.push({
 				type: 'text',
-				text: `Extract all questions and their matching solutions from the attached PDF(s): a question paper and its corresponding markers' report / solutions. 
+				text: `Extract all questions and their matching solutions from the attached PDF(s) belonging to the folder ${folder.name}: a question paper and its corresponding markers' report / solutions (if present). 
                Using the content of the question and its corresponding solution, select one or multiple subtopic id's that are definitely relevant to the question.
-               Only assign strictly relevant subtopics to each question, you must be precise and never misclassify.
+               Only assign strictly relevant subtopics to each question, you must be precise and never misclassify subtopics.
                (For example, a real life context question must involve the real world, and should not be a purely algebraic exercise.)
 
         AVAILABLE SUBTOPICS:
@@ -134,7 +131,7 @@ async function runIngestion() {
           * Graph Descriptions (Questions & Solutions): 
             - If a question premise or marked solution describes or requires a graph sketch, represent it textually by stating its critical features in standard mathematical prose: stationary/turning points, axial intercepts, equations of asymptotes, and endpoints (specifying whether they are inclusive or exclusive).
             - In solutions, present graph features cleanly (e.g., "[Sketch details: Curve y = f(x) with turning point at (2,0), vertical asymptote x = 0, and horizontal asymptote y = k]").
-          * Omission Fallback: If a question relies strictly on a visual diagram that CANNOT be completely, unambiguously, and accurately formulated into pure text/LaTeX without losing solvability, OMIT the entire question entry.
+          * Omission Fallback: If a question relies strictly on a visual diagram that CANNOT be completely, unambiguously, and accurately formulated into pure text/LaTeX without losing solvability, OMIT the entire question entry entirely.
 				- If the markers' report has a "Remarks" or "Comments" column separate from the "Solution" column — extract only the Solution column content as the answer. Discard remarks/comments columns entirely (they are examiner notes, not part of the solution).
 				- If a solution shows multiple methods (e.g. "Alternatively," "Method 1" / "Method 2"), extract all methods, keeping them clearly labeled and separate.
 				- If a solution or question continues onto a new PDF page without a new question number appearing, treat it as a continuation of the same question — do not split it into a separate entry.
@@ -145,7 +142,7 @@ async function runIngestion() {
 				- Format all math in LaTeX, use $$...$$ for display equations, use single $ ... $ for inline variables and equations (e.g., $x$, $y = 2x+1$).
         - The "$" character is STRICTLY RESERVED as a paired LaTeX math delimiter ($...$ or $$...$$). NEVER output a standalone or unpaired "$" character under any circumstances. You may use SGD instead of the dollar sign for currency, e.g: SGD 10.00, SGD $x$.
         - Always add a newline after each answer part, i.e: after (a), (b), (c) etc. and after each subpart, i.e: (ai), (bii), (ciii) etc.
-        - Tables & Probability Distributions: NEVER use "\begin{tabular}" or Markdown tables. Format all tables using LaTeX "\begin{array}" inside "$$...$$" with borders (\hline).`
+        - Tables & Probability Distributions: NEVER use "\\begin{tabular}" or Markdown tables. Format all tables using LaTeX "\\begin{array}" inside "$$...$$" with borders (\\hline).`
 			});
 
 			const response = await anthropicClient.messages.stream({
