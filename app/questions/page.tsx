@@ -6,10 +6,13 @@ import type { TopicGroup } from "@/types/questions";
 import { createClient } from "@/lib/supabase/server";
 import { ErrorPage } from "@/components/ErrorPage";
 import { RequireLogin } from "@/components/RequireLogin";
-
-export const revalidate = 900;
+import { cacheLife } from 'next/cache'
 
 async function fetchTopicGroups(): Promise<TopicGroup[]> {
+  // We cache this function, and set a high cacheLife as these topics rarely change
+  'use cache'
+  cacheLife('weeks')
+
   const { data, error } = await adminClient
     .from("topics")
     .select(`
@@ -35,19 +38,14 @@ export default async function QuestionsPage({ searchParams }: PageProps<"/questi
     return <ErrorPage />;
   }
   const supabase = await createClient();
-  const { data: { user }, error } = (await supabase.auth.getUser());
+  const { data: { user }, error } = await supabase.auth.getUser();
 
   if (error || !user) {
     return (
       <RequireLogin reason="Sign in to explore the question bank, practise by subtopic, and check your working with step-by-step solutions." path="/questions" />
     )
   }
-
-  const [questions, topicGroups] = await Promise.all([
-    fetchQuestions(),
-    fetchTopicGroups(),
-  ]);
-
+  
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('practice_count')
@@ -69,6 +67,11 @@ export default async function QuestionsPage({ searchParams }: PageProps<"/questi
       console.error("Failed to update practice activity:", activityError.message);
     }
   }
+
+  const [questions, topicGroups] = await Promise.all([
+    fetchQuestions(),
+    fetchTopicGroups(),
+  ]);
 
   return (
     <QuestionList initialQuestions={questions} topicGroups={topicGroups} />

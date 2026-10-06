@@ -1,5 +1,4 @@
-import "server-only";
-
+import { cacheLife } from 'next/cache'
 import { adminClient } from "@/lib/supabase/client";
 import { QUESTION_BATCH_SIZE } from "@/lib/questions";
 import type { QuestionWithSubtopicRelations } from "@/types/questions";
@@ -7,6 +6,10 @@ import type { QuestionWithSubtopicRelations } from "@/types/questions";
 export async function fetchQuestions(
   offset = 0,
 ): Promise<QuestionWithSubtopicRelations[]> {
+  // We cache this function, to improve LCP
+  'use cache'
+  cacheLife('days')
+
   const { data, error } = await adminClient
     .from("questions")
     .select(`
