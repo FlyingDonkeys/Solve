@@ -7,8 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ErrorPage } from "@/components/ErrorPage";
 import { RequireLogin } from "@/components/RequireLogin";
 
-
-export const dynamic = 'force-dynamic';
+export const revalidate = 900;
 
 async function fetchTopicGroups(): Promise<TopicGroup[]> {
   const { data, error } = await adminClient
