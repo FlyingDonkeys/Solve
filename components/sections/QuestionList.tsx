@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, LoaderCircle, RotateCcw, SearchX } from "lucide-react";
+import { RotateCcw, SearchX } from "lucide-react";
+import { updateActivity } from "@/lib/activity";
 import { buttonVariants } from "@/components/ui/button";
 import "katex/dist/katex.min.css";
 
@@ -68,11 +69,20 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
         ? prev.filter((currentSubtopic) => currentSubtopic !== subtopic)
         : [...prev, subtopic],
     );
+    void updateActivity();
   };
 
   const selectTopic = (topicName: string) => {
+    if (topicName === selectedTopic) return;
     setSelectedTopic(topicName);
     setActiveSubtopics([]);
+    void updateActivity();
+  };
+
+  const clearFilters = () => {
+    if (activeSubtopics.length === 0) return;
+    setActiveSubtopics([]);
+    void updateActivity();
   };
 
   return (
@@ -90,7 +100,7 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
         activeSubtopics={activeSubtopics}
         onSelectTopic={selectTopic}
         onToggleSubtopic={toggleFilter}
-        onResetSubtopics={() => setActiveSubtopics([])}
+        onResetSubtopics={clearFilters}
       />
       {loadError && (
         <div role="alert" className="surface-panel mb-6 flex flex-wrap items-center justify-between gap-4 p-4 text-sm">
@@ -105,7 +115,7 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
           <SearchX aria-hidden="true" className="mx-auto mb-4 size-7 text-muted-foreground" />
           <h2 className="text-lg font-semibold">{hasMore && !loadError ? "Looking for problems…" : activeSubtopics.length > 0 ? "No matching problems yet" : "No problems available yet"}</h2>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">{hasMore && !loadError ? "More problems are on their way. Your filters will apply as they arrive." : activeSubtopics.length > 0 ? "Try another subtopic or clear your filters to explore more problems." : "Check back soon for more practice."}</p>
-          {activeSubtopics.length > 0 && <button type="button" onClick={() => setActiveSubtopics([])} className={buttonVariants({ variant: "outline", className: "mt-5" })}>Clear filters</button>}
+          {activeSubtopics.length > 0 && <button type="button" onClick={clearFilters} className={buttonVariants({ variant: "outline", className: "mt-5" })}>Clear filters</button>}
         </section>
       )}
     </main>

@@ -46,28 +46,6 @@ export default async function QuestionsPage({ searchParams }: PageProps<"/questi
     )
   }
   
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('practice_count')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError) {
-    console.error("Failed to fetch practice count:", profileError.message);
-  } else {
-    const { error: activityError } = await supabase
-      .from('profiles')
-      .update({
-        last_seen: new Date().toISOString(),
-        practice_count: (profile.practice_count ?? 0) + 1,
-      })
-      .eq('id', user.id);
-
-    if (activityError) {
-      console.error("Failed to update practice activity:", activityError.message);
-    }
-  }
-
   const [questions, topicGroups] = await Promise.all([
     fetchQuestions(),
     fetchTopicGroups(),
