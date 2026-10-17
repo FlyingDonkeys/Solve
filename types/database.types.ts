@@ -159,10 +159,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      update_activity: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
