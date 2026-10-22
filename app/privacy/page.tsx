@@ -17,6 +17,13 @@ const policySections = [
         to recognise you and keep you signed in. We do not receive your Google password.
       </>,
       <>
+        When you request to view or download a practice paper, we record your account
+        identifier, the file path, the action requested, and the time. We use this
+        activity to understand which resources are useful and improve the practice
+        materials. These records do not tell us whether you read the paper or
+        completed the download.
+      </>,
+      <>
         Our hosting and authentication providers may also process technical information
         such as your IP address, browser and device details, request timestamps, and
         error or security logs. If you contact us, we receive the information you choose
@@ -96,7 +103,7 @@ const policySections = [
         send your password or sign-in codes.
       </>,
       <>
-        You can also remove Solve's access in your{" "}
+        You can also remove Solve’s access in your{" "}
         <a href="https://myaccount.google.com/connections">Google Account connections settings</a>.
         Removing access does not automatically delete information already stored
         by Solve; contact us to request account deletion.
@@ -131,7 +138,7 @@ const policySections = [
     title: "Contact us",
     paragraphs: [
       <>
-        For privacy questions or account deletion requests, contact Solve's
+        For privacy questions or account deletion requests, contact Solve’s
         operator on <a href="https://t.me/FlyingDonkey1">Telegram at @FlyingDonkey1</a>.
         Please mention Solve and the nature of your request. Telegram is an external
         service with its own privacy policy.
@@ -147,7 +154,7 @@ export default function PrivacyPage() {
         <header className="border-b border-border pb-8">
           <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">Privacy policy</h1>
           <p className="mt-4 text-sm text-muted-foreground">
-            Last updated: <time dateTime="2026-09-28">28 September 2026</time>          
+            Last updated: <time dateTime="2026-10-22">22 October 2026</time>
           </p>
           <p className="mt-6 text-base leading-8 text-muted-foreground">
                 Solve is a H2 Mathematics practice app with curated questions and solutions.

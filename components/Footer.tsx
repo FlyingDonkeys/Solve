@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 export function Footer() {
@@ -14,6 +15,7 @@ export function Footer() {
             aria-label="Contact Solve (opens in a new tab)"
             className={buttonVariants({ variant: "ghost", className: "min-h-11 text-muted-foreground" })}>
             Contact
+            <ArrowUpRight aria-hidden="true" className="size-4" />
           </a>
         </nav>
       </div>

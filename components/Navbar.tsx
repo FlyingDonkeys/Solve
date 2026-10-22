@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, Sigma } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
@@ -20,14 +20,14 @@ export function Navbar() {
              height={36}
              preload
            />
-          Solve
+          <span className="hidden min-[400px]:inline">Solve</span>
         </Link>
         <nav aria-label="Main navigation" className="flex items-center gap-1">
-          {[{ href: "/", label: "Home" }, { href: "/questions", label: "Problems" }].map(({ href, label }) => {
+          {[{ href: "/", label: "Home" }, { href: "/questions", label: "Problems" }, { href: "/resources", label: "Resources" }].map(({ href, label }) => {
             const active = href === "/" ? pathname === href : pathname.startsWith(href);
             return (
               <Link key={href} href={href} aria-current={active ? "page" : undefined}
-                className={cn("inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors", active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground")}>
+                className={cn("inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-medium transition-colors sm:px-3", active ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground")}>
                 {label}
               </Link>
             );
