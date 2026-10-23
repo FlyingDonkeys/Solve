@@ -16,25 +16,25 @@ export type Database = {
     Tables: {
       file_activity: {
         Row: {
-          id: number
           created_at: string
-          user_id: string
-          file_path: string
           event_type: string
+          file_path: string
+          id: number
+          user_id: string
         }
         Insert: {
-          id?: number
           created_at?: string
-          user_id: string
-          file_path: string
           event_type: string
+          file_path: string
+          id?: number
+          user_id: string
         }
         Update: {
-          id?: number
           created_at?: string
-          user_id?: string
-          file_path?: string
           event_type?: string
+          file_path?: string
+          id?: number
+          user_id?: string
         }
         Relationships: [
           {
