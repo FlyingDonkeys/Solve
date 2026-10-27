@@ -20,7 +20,7 @@ type QuestionInsert = Database['public']['Tables']['questions']['Insert'];
 
 // Zod schema matching the Insert type for runtime validation
 const QuestionBaseSchema = z.object({
-  question_title: z.string().describe('Usually in the form (School Name) (Year) (Prelims/Promos/Common Test etc) (Paper 1/2) (Question Integer Number). If this format cannot be achieved, give a generic name based on the Question Content.'),
+  question_title: z.string().describe('Usually in the form "School Name Year Prelims/Promos/Common Test etc Paper 1/2 Question Integer Number". If this format cannot be achieved, give a generic name based on the Question Content.'),
   question_content: z.string().describe('Complete question text formatted in LaTeX.'),
   question_solution: z.string().optional().describe('Step-by-step worked solution formatted in LaTeX.'),
   subject: z.string().default('H2 Math'),
@@ -122,7 +122,7 @@ async function runIngestion() {
         - Every question MUST include the "subtopic_ids" array using integer IDs from the list above (e.g., [4, 7]). If none match, return [].
 
 				CONTENT RULES:
-				- Transcribe questions and solutions WORD-FOR-WORD from the source. Do not paraphrase, summarize, or reword any mathematical or English content.
+				- Transcribe questions and solutions WORD-FOR-WORD from the source. Do not paraphrase, summarize, or reword any mathematical or English content. You must include the number of marks of every question/question part.
 				- Diagrams, Figures & Graph Handling:
           * OVERRIDE RULE: You are permitted to reword ONLY to eliminate visual diagram dependencies. Transcribe all other text word-for-word.
           * Instructional phrasing is included: rewording extends to instructions like "with the aid of a diagram," "sketch on the same axes," or "using the diagram above" — rewrite these as direct instructions to produce the required argument/values in text (e.g. "with the aid of a diagram, show that..." → "by comparing the relevant areas, show that...").   
@@ -139,15 +139,19 @@ async function runIngestion() {
         - The solution should be question agnostic, i.e: it should not reference the question title or any other metadata. It should be in the form (a), (b), or (bi), (cii) etc, and not 1(a), 1(b), 1(b)(i) etc. The solution should be in the same order as the question parts, i.e: (a) first, then (b), then (c) etc.
 
 				FORMATTING RULES:
-				- Format all math in LaTeX, use $$...$$ for display equations, use single $ ... $ for inline variables and equations (e.g., $x$, $y = 2x+1$).
+        - Preserve whether each mathematical expression is inline or displayed in the source PDF.
+        - Expressions shown on a separate line in the source MUST use $$...$$.
+        - Expressions embedded within a sentence MUST use $...$.
+        - Do not use Markdown formatting such as **bold**, *italics*, or headings.
+        - Do NOT convert a displayed equation into inline math, even if it is short.
         - The "$" character is STRICTLY RESERVED as a paired LaTeX math delimiter ($...$ or $$...$$). NEVER output a standalone or unpaired "$" character under any circumstances. You may use SGD instead of the dollar sign for currency, e.g: SGD 10.00, SGD $x$.
         - Always add a newline after each answer part, i.e: after (a), (b), (c) etc. and after each subpart, i.e: (ai), (bii), (ciii) etc.
         - Tables & Probability Distributions: NEVER use "\\begin{tabular}" or Markdown tables. Format all tables using LaTeX "\\begin{array}" inside "$$...$$" with borders (\\hline).`
 			});
 
 			const response = await anthropicClient.messages.stream({
-				model: 'claude-sonnet-5',
-				max_tokens: 24000,
+				model: "claude-haiku-4-5",
+				max_tokens: 36000,
 				tools: [EXTRACTION_TOOL],
 				tool_choice: { type: 'tool', name: EXTRACTION_TOOL.name },
 				messages: [{ role: 'user', content: contentBlocks }],

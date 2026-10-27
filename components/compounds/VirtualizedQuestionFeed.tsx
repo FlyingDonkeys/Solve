@@ -44,6 +44,9 @@ export function VirtualizedQuestionFeed({
     estimateSize: () => 500,
     // Render the first visible cards on the server before the browser is measured.
     initialRect: { width: 0, height: 800 },
+    // Match the server during hydration, even when the browser restores scroll.
+    // The virtualizer observes the actual window offset after mounting.
+    initialOffset: 0,
     scrollMargin,
     overscan: 5,
   });
