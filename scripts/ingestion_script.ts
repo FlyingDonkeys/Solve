@@ -122,7 +122,7 @@ async function runIngestion() {
         - Every question MUST include the "subtopic_ids" array using integer IDs from the list above (e.g., [4, 7]). If none match, return [].
 
 				CONTENT RULES:
-				- Transcribe questions and solutions WORD-FOR-WORD from the source. Do not paraphrase, summarize, or reword any mathematical or English content. You must include the number of marks of every question/question part.
+				- Transcribe questions and solutions WORD-FOR-WORD from the source. Do not paraphrase, summarize, or reword any mathematical or English content. You must include the number of marks of every question/question part in the SAME LINE.
 				- Diagrams, Figures & Graph Handling:
           * OVERRIDE RULE: You are permitted to reword ONLY to eliminate visual diagram dependencies. Transcribe all other text word-for-word.
           * Instructional phrasing is included: rewording extends to instructions like "with the aid of a diagram," "sketch on the same axes," or "using the diagram above" — rewrite these as direct instructions to produce the required argument/values in text (e.g. "with the aid of a diagram, show that..." → "by comparing the relevant areas, show that...").   

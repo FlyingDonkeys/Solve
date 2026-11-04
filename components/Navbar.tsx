@@ -32,10 +32,10 @@ export function Navbar() {
               </Link>
             );
           })}
-          <a href="https://t.me/FlyingDonkey1" target="_blank" rel="noopener noreferrer" aria-label="Contact us (opens in a new tab)"
-            className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground">
-            <span className="hidden sm:inline">Contact</span>
-            <ArrowUpRight aria-hidden="true" className="size-4" />
+          <a href="https://t.me/+pjTdjF3Gz2lhOTQ1" target="_blank" rel="noopener noreferrer" aria-label="Telegram Group (opens in a new tab)"
+            className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-sm text-white transition-colors border-blue-400 border-2 hover:bg-blue-400 hover:text-foreground">
+            <span className="hidden sm:inline">Telegram</span>
+            <ArrowUpRight aria-hidden="true" className="size-4 text-muted-foreground" />
           </a>
         </nav>
       </div>
