@@ -1,28 +1,38 @@
 import { TopicTab } from "@/components/elements/TopicTab";
-import { TopicToggle } from "@/components/elements/TopicToggle";
+import { TopicToggle, TopicState } from "@/components/elements/TopicToggle";
 import type { TopicGroup } from "@/types/questions";
 
 interface QuestionFiltersProps {
   topicGroups: TopicGroup[];
   selectedTopic: string;
-  activeSubtopics: string[];
+  selectedSubtopics: string[];
+  excludedSubtopics: string[];
   onSelectTopic: (topicName: string) => void;
   onToggleSubtopic: (subtopicName: string) => void;
-  onResetSubtopics: () => void;
 }
 
 export function QuestionFilters({
   topicGroups,
   selectedTopic,
-  activeSubtopics,
+  selectedSubtopics,
+  excludedSubtopics,
   onSelectTopic,
   onToggleSubtopic,
-  onResetSubtopics,
 }: QuestionFiltersProps) {
   const visibleSubtopics = selectedTopic
     ? (topicGroups.find((group) => group.topic_name === selectedTopic)
         ?.subtopics ?? [])
     : topicGroups.flatMap((group) => group.subtopics);
+
+  function getSubtopicState(subtopic: string): TopicState {
+    if (selectedSubtopics.includes(subtopic)) {
+      return "selected"
+    } else if (excludedSubtopics.includes(subtopic)) {
+      return "excluded"
+    } else {
+      return "notSelected"
+    }
+  }
 
   return (
     <section aria-labelledby="filter-heading" className="surface-panel flex flex-col gap-5 p-5 sm:p-6">
@@ -30,15 +40,6 @@ export function QuestionFilters({
         <h2 id="filter-heading" className="text-sm font-semibold">
           Focus your practice
         </h2>
-        {activeSubtopics.length > 0 && (
-          <button
-            type="button"
-            onClick={onResetSubtopics}
-            className="min-h-9 rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            Clear filters ({activeSubtopics.length})
-          </button>
-        )}
       </div>
 
       <div className="flex min-w-0 flex-col gap-4">
@@ -53,7 +54,7 @@ export function QuestionFilters({
           ))}
         </div>
 
-        <p className="text-xs leading-5 text-muted-foreground">Choose one or more subtopics to filter the questions. With none selected, all problems are shown.</p>
+        <p className="text-xs leading-5 text-muted-foreground">Choose one or more subtopics to filter questions by subtopic. With none selected, all problems are shown.</p>
         <div role="group" aria-label="Subtopic filters" className="flex flex-wrap content-start gap-2">
           {visibleSubtopics.length === 0 ? (
             <span className="text-sm text-muted-foreground">
@@ -64,7 +65,7 @@ export function QuestionFilters({
               <TopicToggle
                 key={subtopicName}
                 topicName={subtopicName}
-                isActive={activeSubtopics.includes(subtopicName)}
+                state={getSubtopicState(subtopicName)}
                 onClick={() => onToggleSubtopic(subtopicName)}
               />
             ))

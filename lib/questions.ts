@@ -4,18 +4,27 @@ export const QUESTION_BATCH_SIZE = 50;
 
 export function filterQuestionsBySubtopic(
   questions: QuestionWithSubtopicRelations[],
-  activeSubtopics: string[],
+  selectedSubtopics: string[],
+  excludedSubtopics: string[]
 ): QuestionWithSubtopicRelations[] {
-  if (activeSubtopics.length === 0) {
-    return questions;
-  }
+  
+  return questions.filter((question) => {
+    let matchesSelected = selectedSubtopics.length === 0;
 
-  const activeSubtopicSet = new Set(activeSubtopics);
+    for (const link of question.question_subtopic_junction) {
+      const name = link.Subtopics?.subtopic_name;
+      if (!name) continue;
 
-  return questions.filter((question) =>
-    question.question_subtopic_junction.some((junction) => {
-      const subtopicName = junction.Subtopics?.subtopic_name;
-      return subtopicName ? activeSubtopicSet.has(subtopicName) : false;
-    }),
-  );
+      // Reject any question with an excluded subtopic.
+      if (excludedSubtopics.includes(name)) {
+        return false;
+      }
+
+      if (selectedSubtopics.includes(name)) {
+        matchesSelected = true;
+      }
+    }
+
+    return matchesSelected;
+  });
 }

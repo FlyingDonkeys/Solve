@@ -26,7 +26,8 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
   );
   const [loadError, setLoadError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const [activeSubtopics, setActiveSubtopics] = useState<string[]>([]);
+  const [selectedSubtopics, setSelectedSubtopics] = useState<string[]>([]);
+  const [excludedSubtopics, setExcludedSubtopics] = useState<string[]>([]);
   const [selectedTopic, setSelectedTopic] = useState(
     topicGroups[0]?.topic_name ?? "",
   );
@@ -54,34 +55,32 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
     }
 
     // Appending a successful batch triggers the next fetch after rendering.
-    void loadNextBatch();
+    loadNextBatch();
     return () => controller.abort();
   }, [questions.length, hasMore, retryCount]);
 
   const displayedQuestions = useMemo(
-    () => filterQuestionsBySubtopic(questions, activeSubtopics),
-    [questions, activeSubtopics],
+    () => filterQuestionsBySubtopic(questions, selectedSubtopics, excludedSubtopics),
+    [questions, selectedSubtopics, excludedSubtopics],
   );
 
   const toggleFilter = (subtopic: string) => {
-    setActiveSubtopics((prev) =>
-      prev.includes(subtopic)
-        ? prev.filter((currentSubtopic) => currentSubtopic !== subtopic)
-        : [...prev, subtopic],
-    );
-    void updateActivity();
+    if (selectedSubtopics.includes(subtopic)) {
+      setSelectedSubtopics(prev => prev.filter(t => t != subtopic))
+      setExcludedSubtopics(prev => [...prev, subtopic])
+    } else if (excludedSubtopics.includes(subtopic)) {
+      setExcludedSubtopics(prev => prev.filter(t => t != subtopic))
+    } else {
+      setSelectedSubtopics(prev => [...prev, subtopic])
+    }
+    updateActivity();
   };
 
   const selectTopic = (topicName: string) => {
     if (topicName === selectedTopic) return;
     setSelectedTopic(topicName);
-    setActiveSubtopics([]);
-    void updateActivity();
-  };
-
-  const clearFilters = () => {
-    if (activeSubtopics.length === 0) return;
-    setActiveSubtopics([]);
+    setSelectedSubtopics([]);
+    setExcludedSubtopics([])
     void updateActivity();
   };
 
@@ -97,10 +96,10 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
       <QuestionFilters
         topicGroups={topicGroups}
         selectedTopic={selectedTopic}
-        activeSubtopics={activeSubtopics}
+        selectedSubtopics={selectedSubtopics}
+        excludedSubtopics={excludedSubtopics}
         onSelectTopic={selectTopic}
         onToggleSubtopic={toggleFilter}
-        onResetSubtopics={clearFilters}
       />
       {loadError && (
         <div role="alert" className="surface-panel mb-6 flex flex-wrap items-center justify-between gap-4 p-4 text-sm">
@@ -113,9 +112,8 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
       {displayedQuestions.length > 0 ? <VirtualizedQuestionFeed questions={displayedQuestions} /> : (
         <section className="surface-panel px-6 py-14 text-center">
           <SearchX aria-hidden="true" className="mx-auto mb-4 size-7 text-muted-foreground" />
-          <h2 className="text-lg font-semibold">{hasMore && !loadError ? "Looking for problems…" : activeSubtopics.length > 0 ? "No matching problems yet" : "No problems available yet"}</h2>
-          <p className="mt-2 text-sm leading-7 text-muted-foreground">{hasMore && !loadError ? "More problems are on their way. Your filters will apply as they arrive." : activeSubtopics.length > 0 ? "Try another subtopic or clear your filters to explore more problems." : "Check back soon for more practice."}</p>
-          {activeSubtopics.length > 0 && <button type="button" onClick={clearFilters} className={buttonVariants({ variant: "outline", className: "mt-5" })}>Clear filters</button>}
+          <h2 className="text-lg font-semibold">{hasMore && !loadError ? "Looking for problems…" : selectedSubtopics.length > 0 ? "No matching problems yet" : "No problems available"}</h2>
+          <p className="mt-2 text-sm leading-7 text-muted-foreground">{hasMore && !loadError ? "More problems are on their way. Your filters will apply as they arrive." : selectedSubtopics.length > 0 ? "Try another subtopic or clear your filters to explore more problems." : "Check back soon for more practice."}</p>
         </section>
       )}
     </main>
