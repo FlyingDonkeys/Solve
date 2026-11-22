@@ -16,8 +16,3 @@ export const resourceAccessSchema = z.object({
   }, "Invalid practice paper path"),
   event_type: z.enum(["view_requested", "download_requested"]),
 }).strict();
-
-export type PracticeResource = {
-  path: string;
-  name: string;
-};

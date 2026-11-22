@@ -3,12 +3,22 @@
 import { useRef, useState } from "react";
 import { Download, ExternalLink, FileText, LoaderCircle } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import type { PracticeResource } from "@/lib/resources";
+import type { PracticeResource, ResourceDifficulty } from "@/types/resources";
 
 export function ResourceCard({ resource }: { resource: PracticeResource }) {
   const [pending, setPending] = useState<"view_requested" | "download_requested" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const busy = useRef(false);
+
+  function getColour(difficulty: ResourceDifficulty) {
+    if (difficulty == "Standard" || !difficulty) {
+      return "text-emerald-300"
+    } else if (difficulty == "Advanced") {
+      return "text-amber-500"
+    } else if (difficulty == "Further Reading") {
+      return "text-purple-400"
+    }
+  }
 
   async function accessResource(eventType: "view_requested" | "download_requested") {
     if (busy.current) return;
@@ -44,16 +54,21 @@ export function ResourceCard({ resource }: { resource: PracticeResource }) {
   }
 
   return (
-    <article className="surface-panel flex min-w-0 flex-col p-5 sm:p-6">
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <div className="rounded-xl bg-accent p-3 text-accent-foreground"><FileText aria-hidden="true" className="size-5" /></div>
+    <article className="surface-panel flex min-w-0 flex-col p-5 sm:p-6 transition-all duration-300 hover:border-neutral-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+      <div className="mb-5 flex flex-row items-center justify-between gap-3">
+        <div className={`rounded-xl bg-accent p-3 ${getColour(resource.resource_difficulty)}`}><FileText aria-hidden="true" className="size-5" /></div>
+        <span
+          className={`rounded-md border px-2.5 py-1 text-xs font-medium ${getColour(resource.resource_difficulty)}`}
+        >
+            {resource.resource_difficulty}
+        </span>
       </div>
       <h2 className="break-words text-lg font-semibold tracking-tight">{resource.name.replace(/\.pdf$/i, "")}</h2>
       <div className="mt-auto flex flex-wrap gap-2 pt-6" aria-busy={pending !== null}>
-        <button type="button" disabled={pending !== null} onClick={() => void accessResource("view_requested")} aria-label={`View ${resource.name} (opens in a new tab)`} className={buttonVariants({ className: "min-h-11 flex-1 gap-2" })}>
+        <button type="button" disabled={pending !== null} onClick={() => void accessResource("view_requested")} aria-label={`View ${resource.name} (opens in a new tab)`} className={buttonVariants({ variant: "default", className: "min-h-11 flex-1 gap-2" })}>
           {pending === "view_requested" ? <LoaderCircle aria-hidden="true" className="size-4 animate-spin" /> : <ExternalLink aria-hidden="true" className="size-4" />}View
         </button>
-        <button type="button" disabled={pending !== null} onClick={() => void accessResource("download_requested")} aria-label={`Download ${resource.name}`} className={buttonVariants({ variant: "outline", className: "min-h-11 flex-1 gap-2" })}>
+        <button type="button" disabled={pending !== null} onClick={() => void accessResource("download_requested")} aria-label={`Download ${resource.name}`} className={buttonVariants({ variant: "secondary", className: "min-h-11 flex-1 gap-2" })}>
           {pending === "download_requested" ? <LoaderCircle aria-hidden="true" className="size-4 animate-spin" /> : <Download aria-hidden="true" className="size-4" />}Download
         </button>
       </div>

@@ -28,9 +28,7 @@ export function QuestionList({ initialQuestions, topicGroups }: QuestionListProp
   const [retryCount, setRetryCount] = useState(0);
   const [selectedSubtopics, setSelectedSubtopics] = useState<string[]>([]);
   const [excludedSubtopics, setExcludedSubtopics] = useState<string[]>([]);
-  const [selectedTopic, setSelectedTopic] = useState(
-    topicGroups[0]?.topic_name ?? "",
-  );
+  const [selectedTopic, setSelectedTopic] = useState(topicGroups[0].topic_name);
 
   useEffect(() => {
     if (!hasMore) return;

@@ -1,28 +1,47 @@
 import "server-only";
 
 import { adminClient } from "@/lib/supabase/client";
-import { RESOURCES_BUCKET, RESOURCES_FOLDER, type PracticeResource } from "@/lib/resources";
+import { RESOURCES_BUCKET, RESOURCES_FOLDER } from "@/lib/resources";
+import { PracticeResource } from '../types/resources';
 
 // All signed-in users can access PDFs under this folder, as with the question bank.
 export async function fetchPracticeResources(): Promise<PracticeResource[]> {
   const resources: PracticeResource[] = [];
-  const limit = 1000;
 
-  // Supabase paginates listings; fetch another batch only if the folder needs it.
-  for (let offset = 0; ; offset += limit) {
-    const { data, error } = await adminClient.storage.from(RESOURCES_BUCKET).list(RESOURCES_FOLDER, {
-      limit, offset, sortBy: { column: "name", order: "asc" },
-    });
-    if (error) throw error;
-
-    resources.push(...data
-      .filter((resource) => resource.id && /\.pdf$/i.test(resource.name))
-      .map((resource) => ({
-        path: `${RESOURCES_FOLDER}/${resource.name}`,
-        name: resource.name,
-        size: resource.metadata?.size ?? null,
-      })));
-
-    if (data.length < limit) return resources;
+  const { data: resourceData, error } = await adminClient
+    .from("resources")
+    .select(`
+      resource_id,
+      resource_difficulty,
+      resource_type
+    `)
+    .order("created_at", { ascending: true })
+  
+  if (error) {
+      throw new Error(`Resource fetch failed: ${error.message}`);
   }
+
+  const { data: files, error: storageError } = await adminClient.storage
+    .from(RESOURCES_BUCKET)
+    .list(RESOURCES_FOLDER, { limit: 1000 })
+  
+  if (storageError) {
+    throw new Error(`Files fetch failed: ${storageError.message}`)
+  }
+  
+  for (const resource of resourceData) {
+    const file = files.find((file) => file.id == resource.resource_id)
+    
+    if (!file) {
+      throw new Error(`Failed to fetch the file with object id ${resource.resource_id}`)
+    }
+    resources.push({
+      path: `${RESOURCES_FOLDER}/${file.name}`,
+      name: file.name,
+      resource_type: resource.resource_type,
+      resource_difficulty: resource.resource_difficulty
+    })
+  }
+
+  return resources
 }

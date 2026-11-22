@@ -74,20 +74,20 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          question_id: number | null
-          subtopic_id: number | null
+          question_id: number
+          subtopic_id: number
         }
         Insert: {
           created_at?: string
           id?: number
-          question_id?: number | null
-          subtopic_id?: number | null
+          question_id: number
+          subtopic_id: number
         }
         Update: {
           created_at?: string
           id?: number
-          question_id?: number | null
-          subtopic_id?: number | null
+          question_id?: number
+          subtopic_id?: number
         }
         Relationships: [
           {
@@ -136,6 +136,39 @@ export type Database = {
           subject?: string
           video_id?: string | null
           year_of_question?: number | null
+        }
+        Relationships: []
+      }
+      resources: {
+        Row: {
+          bucket_id: string | null
+          created_at: string
+          id: number
+          resource_difficulty:
+            | Database["public"]["Enums"]["resource_dificulty"]
+            | null
+          resource_id: string
+          resource_type: Database["public"]["Enums"]["resource_type"] | null
+        }
+        Insert: {
+          bucket_id?: string | null
+          created_at?: string
+          id?: number
+          resource_difficulty?:
+            | Database["public"]["Enums"]["resource_dificulty"]
+            | null
+          resource_id: string
+          resource_type?: Database["public"]["Enums"]["resource_type"] | null
+        }
+        Update: {
+          bucket_id?: string | null
+          created_at?: string
+          id?: number
+          resource_difficulty?:
+            | Database["public"]["Enums"]["resource_dificulty"]
+            | null
+          resource_id?: string
+          resource_type?: Database["public"]["Enums"]["resource_type"] | null
         }
         Relationships: []
       }
@@ -194,7 +227,8 @@ export type Database = {
       update_activity: { Args: never; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      resource_dificulty: "Standard" | "Advanced" | "Further Reading"
+      resource_type: "Notes" | "Practice Papers"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -321,6 +355,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      resource_dificulty: ["Standard", "Advanced", "Further Reading"],
+      resource_type: ["Notes", "Practice Papers"],
+    },
   },
 } as const
