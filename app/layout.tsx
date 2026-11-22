@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   verification: {
     google: "sfhN38Ye9w3lEHz1fCJMkT9O667Xyw-W1-CleDeThFg",
   },
+  metadataBase: new URL('https://solve-app.tech'),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
