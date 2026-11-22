@@ -15,7 +15,7 @@ export async function fetchPracticeResources(): Promise<PracticeResource[]> {
       resource_difficulty,
       resource_type
     `)
-    .order("created_at", { ascending: true })
+    .order("resource_difficulty", { ascending: true })
   
   if (error) {
       throw new Error(`Resource fetch failed: ${error.message}`);
